@@ -1,0 +1,10 @@
+node_modules
+node_modules.incomplete-*
+.git
+.env
+coverage
+logs
+*.log
+tests
+postman
+要求文档

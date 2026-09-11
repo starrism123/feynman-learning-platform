@@ -9,6 +9,7 @@ const {
 } = require("./helpers/database");
 
 const app = createApp();
+process.env.JWT_SECRET = "test-secret-that-is-long-enough-for-the-course";
 const validUser = {
   username: "test_student",
   email: "student@test.com",
@@ -27,6 +28,7 @@ describe("第二课用户注册和登录", () => {
 
     expect(response.status).toBe(201);
     expect(response.body.success).toBe(true);
+    expect(response.body.data.token).toEqual(expect.any(String));
     expect(response.body.data.user.password).toBeUndefined();
 
     const saved = await User.findOne({ email: validUser.email }).select(
@@ -99,10 +101,18 @@ describe("第二课用户注册和登录", () => {
       email: validUser.email,
       password: "wrong-password",
     });
+    const unknown = await request(app).post("/api/users/login").send({
+      email: "unknown@test.com",
+      password: validUser.password,
+    });
 
     expect(login.status).toBe(200);
+    expect(login.body.data.token).toEqual(expect.any(String));
+    expect(login.body.data.user.password).toBeUndefined();
     expect(legacyLogin.status).toBe(200);
     expect(wrong.status).toBe(401);
     expect(wrong.body.error.code).toBe("INVALID_CREDENTIALS");
+    expect(unknown.status).toBe(401);
+    expect(unknown.body.error.code).toBe("INVALID_CREDENTIALS");
   });
 });

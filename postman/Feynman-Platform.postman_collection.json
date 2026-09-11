@@ -1,0 +1,330 @@
+{
+  "info": {
+    "_postman_id": "9fb7a2f1-c237-4ac8-91ca-2e4670356d14",
+    "name": "费曼学习平台：前三课完整验收",
+    "description": "按顺序运行集合可完成基础接口、注册、JWT 和知识点 CRUD。正式认证使用 Bearer Token。",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "runSuffix", "value": "" },
+    { "key": "username", "value": "" },
+    { "key": "email", "value": "" },
+    { "key": "password", "value": "password123" },
+    { "key": "token", "value": "" },
+    { "key": "knowledgePointId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "01 基础接口",
+      "item": [
+        {
+          "name": "Hello World",
+          "request": { "method": "GET", "url": "{{baseUrl}}/" },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('返回 200', () => pm.response.to.have.status(200));",
+                  "pm.test('返回课程问候语', () => pm.expect(pm.response.text()).to.eql('Hello, Feynman Learner!'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "学生信息选做接口",
+          "request": { "method": "GET", "url": "{{baseUrl}}/user" },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('包含姓名和专业', () => { const body = pm.response.json(); pm.expect(body).to.have.keys('name', 'major'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "健康检查",
+          "request": { "method": "GET", "url": "{{baseUrl}}/health" },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('服务健康', () => { pm.response.to.have.status(200); pm.expect(pm.response.json().success).to.be.true; });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02 用户认证",
+      "item": [
+        {
+          "name": "注册并自动保存 Token",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{username}}\",\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/users/register"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const suffix = Date.now().toString();",
+                  "pm.collectionVariables.set('runSuffix', suffix);",
+                  "pm.collectionVariables.set('username', `postman_${suffix}`);",
+                  "pm.collectionVariables.set('email', `postman_${suffix}@example.com`);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('注册返回 201', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.test('响应没有密码', () => pm.expect(body.data.user).not.to.have.property('password'));",
+                  "pm.collectionVariables.set('token', body.data.token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "登录",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/users/login"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('登录返回 200', () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set('token', pm.response.json().data.token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "旧路径与 name 字段兼容",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"legacy_{{runSuffix}}\",\n  \"email\": \"legacy_{{runSuffix}}@example.com\",\n  \"password\": \"{{password}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/register"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('兼容注册返回 201', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03 知识点 CRUD",
+      "item": [
+        {
+          "name": "无 Token 被拒绝",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/knowledge-points"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('返回 401', () => pm.response.to.have.status(401));",
+                  "pm.test('错误码明确', () => pm.expect(pm.response.json().error.code).to.eql('AUTH_REQUIRED'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "创建知识点并保存 ID",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                { "key": "token", "value": "{{token}}", "type": "string" }
+              ]
+            },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"什么是 JWT\",\n  \"content\": \"JWT 是一种带签名和过期时间的 Token 格式。\"\n}"
+            },
+            "url": "{{baseUrl}}/api/knowledge-points"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('创建返回 201', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('knowledgePointId', pm.response.json().data.knowledgePoint._id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "获取列表",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                { "key": "token", "value": "{{token}}", "type": "string" }
+              ]
+            },
+            "url": "{{baseUrl}}/api/knowledge-points"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('列表至少一项', () => pm.expect(pm.response.json().data.count).to.be.above(0));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "获取详情",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                { "key": "token", "value": "{{token}}", "type": "string" }
+              ]
+            },
+            "url": "{{baseUrl}}/api/knowledge-points/{{knowledgePointId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('详情 ID 正确', () => pm.expect(pm.response.json().data.knowledgePoint._id).to.eql(pm.collectionVariables.get('knowledgePointId')));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH 更新",
+          "request": {
+            "method": "PATCH",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                { "key": "token", "value": "{{token}}", "type": "string" }
+              ]
+            },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"in_progress\",\n  \"reviewList\": true\n}"
+            },
+            "url": "{{baseUrl}}/api/knowledge-points/{{knowledgePointId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('状态更新成功', () => pm.expect(pm.response.json().data.knowledgePoint.status).to.eql('in_progress'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PUT 讲义兼容更新",
+          "request": {
+            "method": "PUT",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                { "key": "token", "value": "{{token}}", "type": "string" }
+              ]
+            },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"mastered\"\n}"
+            },
+            "url": "{{baseUrl}}/api/knowledge-points/{{knowledgePointId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('PUT 兼容成功', () => pm.expect(pm.response.json().data.knowledgePoint.status).to.eql('mastered'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "删除知识点",
+          "request": {
+            "method": "DELETE",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                { "key": "token", "value": "{{token}}", "type": "string" }
+              ]
+            },
+            "url": "{{baseUrl}}/api/knowledge-points/{{knowledgePointId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('删除返回 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

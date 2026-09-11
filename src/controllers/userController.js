@@ -1,4 +1,5 @@
 const bcrypt = require("bcryptjs");
+const { createToken } = require("../config/auth");
 const User = require("../models/User");
 const { AppError } = require("../utils/appError");
 const { sendSuccess } = require("../utils/response");
@@ -18,8 +19,9 @@ async function register(req, res) {
 
   const passwordHash = await bcrypt.hash(password, 10);
   const user = await User.create({ username, email, password: passwordHash });
+  const token = createToken(user.id);
 
-  return sendSuccess(res, 201, { user }, "注册成功");
+  return sendSuccess(res, 201, { token, user }, "注册成功");
 }
 
 async function login(req, res) {
@@ -32,7 +34,8 @@ async function login(req, res) {
   }
 
   user.password = undefined;
-  return sendSuccess(res, 200, { user }, "登录成功");
+  const token = createToken(user.id);
+  return sendSuccess(res, 200, { token, user }, "登录成功");
 }
 
 module.exports = { register, login };

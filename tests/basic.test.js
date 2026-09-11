@@ -25,4 +25,12 @@ describe("第一课基础接口", () => {
     expect(response.status).toBe(200);
     expect(response.body).toEqual({ success: true, data: { status: "ok" } });
   });
+
+  test("GET /api-docs.json 返回可用的 OpenAPI 合同", async () => {
+    const response = await request(createApp()).get("/api-docs.json");
+
+    expect(response.status).toBe(200);
+    expect(response.body.openapi).toBe("3.0.3");
+    expect(response.body.paths["/api/knowledge-points/{id}"]).toBeDefined();
+  });
 });

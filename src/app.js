@@ -1,8 +1,11 @@
 const express = require("express");
 const cors = require("cors");
+const swaggerUi = require("swagger-ui-express");
+const { loadOpenApiDocument } = require("./config/swagger");
 const { register, login } = require("./controllers/userController");
 const { errorHandler, notFound } = require("./middleware/errorHandler");
 const { userRoutes } = require("./routes/userRoutes");
+const { knowledgePointRoutes } = require("./routes/knowledgePointRoutes");
 
 function createApp() {
   const app = express();
@@ -25,7 +28,10 @@ function createApp() {
     res.json({ success: true, data: { status: "ok" } });
   });
 
+  app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(loadOpenApiDocument()));
+  app.get("/api-docs.json", (req, res) => res.json(loadOpenApiDocument()));
   app.use("/api/users", userRoutes);
+  app.use("/api/knowledge-points", knowledgePointRoutes);
   app.post("/api/register", register);
   app.post("/api/login", login);
 
