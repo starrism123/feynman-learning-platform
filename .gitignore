@@ -1,0 +1,9 @@
+node_modules/
+node_modules.incomplete-*/
+.env
+coverage/
+logs/
+*.log
+.DS_Store
+.idea/
+.vscode/

@@ -1,0 +1,5 @@
+node_modules/
+node_modules.incomplete-*/
+coverage/
+要求文档/
+package-lock.json
