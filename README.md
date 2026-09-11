@@ -1,11 +1,13 @@
 # 费曼学习平台后端
 
-这是《大前端与AI实战》前三次课程的连续实践项目。当前 `lesson-1` 阶段提供 Express Hello World、健康检查和课程选做的学生信息接口。
+这是《大前端与AI实战》前三次课程的连续实践项目。当前 `lesson-2` 阶段已经在第一课基础上加入 MongoDB、用户注册、密码哈希和登录挑战任务。
 
 ## 快速开始
 
 ```powershell
 npm install
+Copy-Item .env.example .env
+# 按实际环境修改 .env 中的 MONGO_URI
 npm start
 ```
 
@@ -14,7 +16,7 @@ npm start
 ## 验证
 
 ```powershell
-npm test
+npm run verify
 ```
 
-后续课次将在同一项目上继续增加 MongoDB、用户认证和知识点 CRUD。
+测试使用内存 MongoDB，不读取 `.env`，无需预先启动本地数据库。
