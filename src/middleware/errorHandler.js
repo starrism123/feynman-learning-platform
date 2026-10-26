@@ -16,6 +16,17 @@ function errorHandler(err, req, res, next) {
     return res.status(err.status).json({ success: false, error });
   }
 
+  if (err?.name === "MulterError") {
+    const tooLarge = err.code === "LIMIT_FILE_SIZE";
+    return res.status(tooLarge ? 413 : 400).json({
+      success: false,
+      error: {
+        code: tooLarge ? "FILE_TOO_LARGE" : "UPLOAD_ERROR",
+        message: tooLarge ? "录音文件不能超过 25MB" : "文件上传格式不正确",
+      },
+    });
+  }
+
   if (err?.code === 11000) {
     return res.status(409).json({
       success: false,

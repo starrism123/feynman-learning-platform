@@ -6,6 +6,8 @@ const { register, login } = require("./controllers/userController");
 const { errorHandler, notFound } = require("./middleware/errorHandler");
 const { userRoutes } = require("./routes/userRoutes");
 const { knowledgePointRoutes } = require("./routes/knowledgePointRoutes");
+const { audioRoutes } = require("./routes/audioRoutes");
+const { aiRoutes } = require("./routes/aiRoutes");
 
 function createApp() {
   const app = express();
@@ -32,6 +34,8 @@ function createApp() {
   app.get("/api-docs.json", (req, res) => res.json(loadOpenApiDocument()));
   app.use("/api/users", userRoutes);
   app.use("/api/knowledge-points", knowledgePointRoutes);
+  app.use("/api/audio", audioRoutes);
+  app.use("/api/ai", aiRoutes);
   app.post("/api/register", register);
   app.post("/api/login", login);
 

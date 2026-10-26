@@ -28,8 +28,10 @@ function DashboardPage() {
   // 第 6 课挑战：按标题和内容搜索
   const visiblePoints = useMemo(() => {
     const text = keyword.trim().toLowerCase();
-    if (!text) return knowledgePoints;
-    return knowledgePoints.filter(
+    // 待复习的排在前面
+    const sorted = [...knowledgePoints].sort((a, b) => Number(b.reviewList) - Number(a.reviewList));
+    if (!text) return sorted;
+    return sorted.filter(
       (kp) => kp.title.toLowerCase().includes(text) || kp.content.toLowerCase().includes(text),
     );
   }, [knowledgePoints, keyword]);
@@ -82,14 +84,20 @@ function DashboardPage() {
                 <Link to={`/kp/${kp._id}`} className="kp-title">
                   {kp.title}
                 </Link>
-                <span className={`badge badge-${kp.status}`}>{STATUS_LABELS[kp.status]}</span>
+                <div className="row">
+                  {kp.reviewList && <span className="badge badge-review">待复习</span>}
+                  <span className={`badge badge-${kp.status}`}>{STATUS_LABELS[kp.status]}</span>
+                </div>
               </div>
               <div className="kp-preview">
                 <MarkdownRenderer content={kp.content} />
               </div>
               <div className="kp-actions">
-                <Link to={`/kp/${kp._id}`} className="btn btn-small">
-                  查看
+                <Link to={`/feynman/${kp._id}`} className="btn btn-small btn-primary">
+                  开始复述
+                </Link>
+                <Link to={`/quiz/${kp._id}`} className="btn btn-small">
+                  测评
                 </Link>
                 <Link to={`/kp/edit/${kp._id}`} className="btn btn-small">
                   编辑

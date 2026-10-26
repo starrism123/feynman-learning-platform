@@ -1,0 +1,12 @@
+{
+  "name": "feynman-midterm-video",
+  "private": true,
+  "description": "期中演示视频：Playwright 驱动系统 Chrome 走完整流程并录屏",
+  "type": "module",
+  "scripts": {
+    "flow": "node flow.mjs"
+  },
+  "devDependencies": {
+    "playwright-core": "^1.64.1"
+  }
+}

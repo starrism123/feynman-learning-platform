@@ -6,12 +6,42 @@
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    { "key": "runSuffix", "value": "" },
-    { "key": "username", "value": "" },
-    { "key": "email", "value": "" },
-    { "key": "password", "value": "password123" },
-    { "key": "token", "value": "" },
-    { "key": "knowledgePointId", "value": "" }
+    {
+      "key": "runSuffix",
+      "value": ""
+    },
+    {
+      "key": "username",
+      "value": ""
+    },
+    {
+      "key": "email",
+      "value": ""
+    },
+    {
+      "key": "password",
+      "value": "password123"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "knowledgePointId",
+      "value": ""
+    },
+    {
+      "key": "aiKnowledgePointId",
+      "value": ""
+    },
+    {
+      "key": "aiQuestion",
+      "value": ""
+    },
+    {
+      "key": "aiKeyPoints",
+      "value": ""
+    }
   ],
   "item": [
     {
@@ -19,7 +49,10 @@
       "item": [
         {
           "name": "Hello World",
-          "request": { "method": "GET", "url": "{{baseUrl}}/" },
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/"
+          },
           "event": [
             {
               "listen": "test",
@@ -34,7 +67,10 @@
         },
         {
           "name": "学生信息选做接口",
-          "request": { "method": "GET", "url": "{{baseUrl}}/user" },
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/user"
+          },
           "event": [
             {
               "listen": "test",
@@ -48,7 +84,10 @@
         },
         {
           "name": "健康检查",
-          "request": { "method": "GET", "url": "{{baseUrl}}/health" },
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/health"
+          },
           "event": [
             {
               "listen": "test",
@@ -69,7 +108,12 @@
           "name": "注册并自动保存 Token",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"username\": \"{{username}}\",\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
@@ -106,7 +150,12 @@
           "name": "登录",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
@@ -129,7 +178,12 @@
           "name": "旧路径与 name 字段兼容",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"name\": \"legacy_{{runSuffix}}\",\n  \"email\": \"legacy_{{runSuffix}}@example.com\",\n  \"password\": \"{{password}}\"\n}"
@@ -177,10 +231,19 @@
             "auth": {
               "type": "bearer",
               "bearer": [
-                { "key": "token", "value": "{{token}}", "type": "string" }
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
               ]
             },
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"title\": \"什么是 JWT\",\n  \"content\": \"JWT 是一种带签名和过期时间的 Token 格式。\"\n}"
@@ -206,7 +269,11 @@
             "auth": {
               "type": "bearer",
               "bearer": [
-                { "key": "token", "value": "{{token}}", "type": "string" }
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
               ]
             },
             "url": "{{baseUrl}}/api/knowledge-points"
@@ -229,7 +296,11 @@
             "auth": {
               "type": "bearer",
               "bearer": [
-                { "key": "token", "value": "{{token}}", "type": "string" }
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
               ]
             },
             "url": "{{baseUrl}}/api/knowledge-points/{{knowledgePointId}}"
@@ -252,10 +323,19 @@
             "auth": {
               "type": "bearer",
               "bearer": [
-                { "key": "token", "value": "{{token}}", "type": "string" }
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
               ]
             },
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"status\": \"in_progress\",\n  \"reviewList\": true\n}"
@@ -280,10 +360,19 @@
             "auth": {
               "type": "bearer",
               "bearer": [
-                { "key": "token", "value": "{{token}}", "type": "string" }
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
               ]
             },
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"status\": \"mastered\"\n}"
@@ -308,7 +397,11 @@
             "auth": {
               "type": "bearer",
               "bearer": [
-                { "key": "token", "value": "{{token}}", "type": "string" }
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
               ]
             },
             "url": "{{baseUrl}}/api/knowledge-points/{{knowledgePointId}}"
@@ -319,6 +412,271 @@
               "script": {
                 "exec": [
                   "pm.test('删除返回 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "04 语音与 AI（需先启动 Whisper 和 Ollama，或配置 DeepSeek）",
+      "item": [
+        {
+          "name": "创建复述用的知识点",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"JWT 登录认证\",\n  \"content\": \"JWT 由 Header、Payload、Signature 三部分组成。Payload 只是编码不是加密，不能放密码；签名用服务器密钥计算，防止篡改。\"\n}"
+            },
+            "url": "{{baseUrl}}/api/knowledge-points"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('创建返回 201', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('aiKnowledgePointId', pm.response.json().data.knowledgePoint._id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "上传录音转文字",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "audio",
+                  "type": "file",
+                  "src": "video/assets/student-retell.mp3"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/audio/transcribe",
+            "description": "在 Postman 里把 audio 字段换成本机任意一段录音；Whisper 服务未启动时返回 503。"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('识别成功', () => pm.response.to.have.status(200));",
+                  "pm.test('有识别文字', () => pm.expect(pm.response.json().data.result).to.be.a('string'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AI 点评复述",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"knowledgePointId\": \"{{aiKnowledgePointId}}\",\n  \"transcribedText\": \"JWT 就是登录以后服务器发的令牌，有头部、载荷和签名三部分。载荷里可以放密码，因为它是加密的。\"\n}"
+            },
+            "url": "{{baseUrl}}/api/ai/evaluate"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('点评成功', () => pm.response.to.have.status(200));",
+                  "const data = pm.response.json().data;",
+                  "pm.test('有综合分和四个维度', () => { pm.expect(data.score).to.be.a('number'); pm.expect(data.dimensions).to.have.keys('accuracy', 'clarity', 'completeness', 'conciseness'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AI 出单选题",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"knowledgePointId\": \"{{aiKnowledgePointId}}\",\n  \"difficulty\": \"中等\",\n  \"type\": \"single-choice\"\n}"
+            },
+            "url": "{{baseUrl}}/api/ai/generate-question"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('出题成功', () => pm.response.to.have.status(200));",
+                  "pm.test('四个选项和答案', () => { const q = pm.response.json().data; pm.expect(q.options).to.have.keys('A', 'B', 'C', 'D'); pm.expect(['A', 'B', 'C', 'D']).to.include(q.answer); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AI 出简答题",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"knowledgePointId\": \"{{aiKnowledgePointId}}\",\n  \"difficulty\": \"基础\",\n  \"type\": \"short-answer\"\n}"
+            },
+            "url": "{{baseUrl}}/api/ai/generate-question"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('出题成功', () => pm.response.to.have.status(200));",
+                  "const q = pm.response.json().data;",
+                  "pm.collectionVariables.set('aiQuestion', q.question);",
+                  "pm.collectionVariables.set('aiKeyPoints', JSON.stringify(q.answer_key_points));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AI 判简答题",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"{{aiQuestion}}\",\n  \"answerKeyPoints\": {{aiKeyPoints}},\n  \"studentAnswer\": \"签名用服务器密钥算出来，别人改了载荷签名就对不上，所以能防篡改。\"\n}"
+            },
+            "url": "{{baseUrl}}/api/ai/grade-answer"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('判分成功', () => pm.response.to.have.status(200));",
+                  "pm.test('有对错和理由', () => { const r = pm.response.json().data; pm.expect(r.isCorrect).to.be.a('boolean'); pm.expect(r.explanation).to.be.a('string'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "查看复述记录",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/knowledge-points/{{aiKnowledgePointId}}/attempts"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('返回 200', () => pm.response.to.have.status(200));",
+                  "pm.test('至少一条记录', () => pm.expect(pm.response.json().data.attempts.length).to.be.at.least(1));"
                 ]
               }
             }

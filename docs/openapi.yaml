@@ -2,13 +2,15 @@ openapi: 3.0.3
 info:
   title: 费曼学习平台后端 API
   version: 1.0.0
-  description: 《大前端与AI实战》前三课实现。正式认证方式为 Bearer Token，同时兼容 x-auth-token。
+  description: 《大前端与AI实战》第 1–9 课实现。正式认证方式为 Bearer Token，同时兼容 x-auth-token。
 servers:
   - url: http://localhost:3000
 tags:
   - name: 基础
   - name: 用户
   - name: 知识点
+  - name: 语音
+  - name: AI
 paths:
   /:
     get:
@@ -196,6 +198,108 @@ paths:
         "400": { $ref: "#/components/responses/BadRequest" }
         "401": { $ref: "#/components/responses/Unauthorized" }
         "404": { $ref: "#/components/responses/NotFound" }
+  /api/knowledge-points/{id}/attempts:
+    parameters:
+      - $ref: "#/components/parameters/KnowledgePointId"
+    get:
+      tags: [知识点]
+      summary: 查看该知识点最近 20 次费曼复述记录
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200": { description: 查询成功 }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /api/audio/transcribe:
+    post:
+      tags: [语音]
+      summary: 上传录音并转成文字（第 7 课，后端转发给本地 Whisper）
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [audio]
+              properties:
+                audio:
+                  {
+                    type: string,
+                    format: binary,
+                    description: 录音文件，不超过 25MB,
+                  }
+      responses:
+        "200": { description: 识别成功，data.result 为文字 }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "503": { description: 语音识别服务未启动 }
+  /api/ai/evaluate:
+    post:
+      tags: [AI]
+      summary: AI 润色复述并打分，同时存档（第 8 课）
+      description: 先调用 DeepSeek，失败时自动回退到本地 Ollama。分数低于 60 时知识点自动加入复习列表。
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [knowledgePointId, transcribedText]
+              properties:
+                knowledgePointId: { type: string }
+                transcribedText: { type: string }
+      responses:
+        "200":
+          {
+            description: 返回 polishedText、score、dimensions、strengths、weaknesses、provider,
+          }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "502": { description: 所有大模型服务都不可用 }
+  /api/ai/generate-question:
+    post:
+      tags: [AI]
+      summary: 按知识点和难度出题（第 9 课）
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                knowledgePointId: { type: string }
+                knowledgePointContent:
+                  { type: string, description: 讲义写法，直接传内容 }
+                difficulty: { type: string, enum: [基础, 中等, 困难] }
+                type: { type: string, enum: [single-choice, short-answer] }
+      responses:
+        "200":
+          {
+            description: 单选题含 options/answer/explanation，简答题含 answer_key_points,
+          }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "502": { description: AI 返回格式不完整或服务不可用 }
+  /api/ai/grade-answer:
+    post:
+      tags: [AI]
+      summary: AI 批改简答题（第 9 课挑战）
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [question, answerKeyPoints, studentAnswer]
+              properties:
+                question: { type: string }
+                answerKeyPoints: { type: array, items: { type: string } }
+                studentAnswer: { type: string }
+      responses:
+        "200": { description: 返回 isCorrect、score、explanation }
+        "400": { $ref: "#/components/responses/BadRequest" }
 components:
   securitySchemes:
     bearerAuth:

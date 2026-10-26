@@ -13,3 +13,5 @@ logs/
 output/配音试听/
 练习/
 .data/
+video/node_modules/
+video/output/

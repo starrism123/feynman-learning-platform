@@ -6,6 +6,7 @@ const {
   updateKnowledgePoint,
   deleteKnowledgePoint,
 } = require("../controllers/knowledgePointController");
+const { listAttempts } = require("../controllers/feynmanAttemptController");
 const { auth } = require("../middleware/auth");
 
 const router = express.Router();
@@ -18,5 +19,6 @@ router
   .patch(updateKnowledgePoint)
   .put(updateKnowledgePoint)
   .delete(deleteKnowledgePoint);
+router.get("/:id/attempts", listAttempts);
 
 module.exports = { knowledgePointRoutes: router };

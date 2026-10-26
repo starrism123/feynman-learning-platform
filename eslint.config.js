@@ -10,6 +10,9 @@ module.exports = [
       globals: {
         console: "readonly",
         fetch: "readonly",
+        FormData: "readonly",
+        Blob: "readonly",
+        Buffer: "readonly",
         process: "readonly",
         module: "readonly",
         require: "readonly",
@@ -20,6 +23,7 @@ module.exports = [
         beforeAll: "readonly",
         afterAll: "readonly",
         beforeEach: "readonly",
+        afterEach: "readonly",
         jest: "readonly",
       },
     },
@@ -46,6 +50,7 @@ module.exports = [
       "output/**",
       "feynman-platform-frontend/**",
       "whisper-service/**",
+      "video/**",
     ],
   },
 ];

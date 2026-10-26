@@ -74,6 +74,7 @@ async function deleteKnowledgePoint(req, res) {
 }
 
 module.exports = {
+  findOwnedKnowledgePoint,
   createKnowledgePoint,
   listKnowledgePoints,
   getKnowledgePoint,
