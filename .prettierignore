@@ -3,3 +3,6 @@ node_modules.incomplete-*/
 coverage/
 要求文档/
 package-lock.json
+.codex-ppt02/
+练习/
+output/

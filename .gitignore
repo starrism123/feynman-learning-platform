@@ -7,3 +7,8 @@ logs/
 .DS_Store
 .idea/
 .vscode/
+
+# 生成过程文件和本地素材
+.codex-ppt02/
+output/配音试听/
+练习/

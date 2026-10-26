@@ -7,6 +7,7 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
+    "learn:ajax": "node scripts/start-learning-demo.js",
     "test": "jest --runInBand",
     "test:watch": "jest --watch",
     "lint": "eslint .",
@@ -24,6 +25,7 @@
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^8.24.4",
+    "swagger-jsdoc": "^6.3.0",
     "swagger-ui-express": "^5.0.1",
     "yaml": "^2.9.0"
   },

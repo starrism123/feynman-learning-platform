@@ -4,16 +4,30 @@
 
 ## 先从这里开始
 
-| 你的目标             | 入口                                        |
-| -------------------- | ------------------------------------------- |
-| 马上验证全部功能     | 运行 `npm run verify`                       |
-| 第一次系统学习       | [系统学习指南](docs/learning-guide.md)      |
-| 临时查命令和概念     | [知识点速查](docs/quick-reference.md)       |
-| 对照需求、源码和测试 | [源码与测试索引](docs/source-test-map.md)   |
-| 检查每次课成果       | [课程验收清单](docs/checklists/README.md)   |
-| 检验自己是否真的理解 | [苏格拉底式自测](docs/self-test.md)         |
-| 遇到运行错误         | [常见问题排查](docs/troubleshooting.md)     |
-| 查看完整 API         | 启动后打开 `http://localhost:3000/api-docs` |
+| 你的目标             | 入口                                          |
+| -------------------- | --------------------------------------------- |
+| 从零看懂 AJAX 调用链 | [通俗 AJAX 教学](docs/beginner-ajax-guide.md) |
+| 马上验证全部功能     | 运行 `npm run verify`                         |
+| 第一次系统学习       | [系统学习指南](docs/learning-guide.md)        |
+| 临时查命令和概念     | [知识点速查](docs/quick-reference.md)         |
+| 对照需求、源码和测试 | [源码与测试索引](docs/source-test-map.md)     |
+| 检查每次课成果       | [课程验收清单](docs/checklists/README.md)     |
+| 检验自己是否真的理解 | [苏格拉底式自测](docs/self-test.md)           |
+| 遇到运行错误         | [常见问题排查](docs/troubleshooting.md)       |
+| 查看完整 API         | 启动后打开 `http://localhost:3000/api-docs`   |
+
+## 方式零：一键 AJAX 学习实验室
+
+如果函数、Promise、Express 和前后端调用还没有连起来，先使用不依赖 Docker 的互动演示：
+
+```powershell
+npm install
+npm run learn:ajax
+```
+
+打开终端显示的 `http://127.0.0.1:5173`，按顺序完成健康检查、注册、登录和知识点 CRUD。网页会同时展示本次请求等价的完整 `fetch`、请求包、后端调用链和响应包。
+
+演示直接使用当前真实 API，但数据库和 JWT 密钥只存在于本次学习进程；按 `Ctrl+C` 后数据自动清空。端口冲突时可以设置 `LEARNING_API_PORT` 和 `LEARNING_WEB_PORT`。完整操作与概念解释见 [从 JavaScript 到 AJAX](docs/beginner-ajax-guide.md)。
 
 ## 方式一：无需 Docker 的自动验收
 
@@ -108,6 +122,7 @@ tests/            无 Docker 自动测试
 docs/             学习、设计、API 与验收资料
 postman/          Postman 集合和环境
 scripts/          Windows 验收脚本
+examples/         可运行的 AJAX 学习页
 ```
 
 完整设计取舍和扩展边界见 [使用与设计说明](docs/usage-and-design.md)。

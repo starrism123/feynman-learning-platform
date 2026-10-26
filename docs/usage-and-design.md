@@ -4,16 +4,19 @@
 
 ## 用户工作流
 
-项目提供两条互不依赖的验证通道：
+项目提供一个学习入口和两条互不依赖的验证通道：
 
-1. `npm run verify` 使用临时 MongoDB，适合开发、提交前检查和没有 Docker 的课堂电脑。
-2. `docker compose up --build -d` 启动应用和持久化 MongoDB，再用 `scripts/smoke-test.ps1` 验证真实 HTTP 链路。
+1. `npm run learn:ajax` 同时启动真实 Express API、临时 MongoDB 和 AJAX 教学网页，适合从浏览器点击追踪到数据库；退出后练习数据清空。
+2. `npm run verify` 使用临时 MongoDB，适合开发、提交前检查和没有 Docker 的课堂电脑。
+3. `docker compose up --build -d` 启动应用和持久化 MongoDB，再用 `scripts/smoke-test.ps1` 验证真实 HTTP 链路。
 
-API 的机器可读合同是 `docs/openapi.yaml`，运行后的交互页面位于 `/api-docs`；Postman 集合用于课堂手工演示。README 是所有学习与验收资料的入口。
+AJAX 教学页默认位于 `127.0.0.1:5173`，API 默认位于 `127.0.0.1:3000`；可用 `LEARNING_WEB_PORT` 和 `LEARNING_API_PORT` 覆盖。API 的机器可读合同是 `docs/openapi.yaml`，运行后的交互页面位于 `/api-docs`；Postman 集合用于课堂手工演示。README 是所有学习与验收资料的入口。
 
 ## 架构与数据流
 
 `src/app.js` 只组装 Express 应用；`src/server.js` 负责数据库生命周期与端口。路由只映射 URL，控制器组织业务，验证器处理输入，模型负责持久化，中间件承担认证与错误响应。这种分离允许 Supertest 不监听真实端口就完成集成测试。
+
+`scripts/start-learning-demo.js` 复用 `createApp()`，并为教学单独管理临时 MongoDB、API 监听和静态网页监听。`examples/ajax-demo/` 只负责观察和调用现有合同，不定义第二套业务 API。教学 Token 仅保存在页面内存，刷新后丢失；网络失败使用前端本地错误码 `CLIENT_NETWORK_ERROR` 展示，不能误认为后端响应。
 
 正式 API 使用 `/api/users/*`、Bearer Token、`username` 和 PATCH；为课程讲义保留旧用户路径、`name`、`x-auth-token` 和 PUT。兼容入口调用相同逻辑，不维护两套业务实现。成功和失败响应保持统一结构。
 
@@ -36,6 +39,8 @@ API 的机器可读合同是 `docs/openapi.yaml`，运行后的交互页面位�
 ## 已知限制
 
 - 自动测试首次可能需要下载 MongoDB 二进制。
+- AJAX 演示首次也可能等待临时 MongoDB 二进制下载；退出后数据不持久化。
+- AJAX 演示的固定 JWT 密钥仅用于独立的临时学习进程，不得用于普通启动或公开部署。
 - Docker 完整验收需要 Docker Desktop 引擎已启动。
 - Atlas 账号、IP 白名单及个人密钥无法由仓库预置。
 - 本项目是前三课后端，不包含 Android、React、录音、AI 或知识图谱功能。

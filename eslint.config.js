@@ -9,6 +9,7 @@ module.exports = [
       sourceType: "commonjs",
       globals: {
         console: "readonly",
+        fetch: "readonly",
         process: "readonly",
         module: "readonly",
         require: "readonly",
@@ -24,6 +25,25 @@ module.exports = [
     },
   },
   {
-    ignores: ["node_modules/**", "node_modules.incomplete-*/**", "coverage/**"],
+    files: ["examples/ajax-demo/**/*.js"],
+    languageOptions: {
+      sourceType: "script",
+      globals: {
+        document: "readonly",
+        fetch: "readonly",
+        performance: "readonly",
+        window: "readonly",
+      },
+    },
+  },
+  {
+    ignores: [
+      "node_modules/**",
+      "node_modules.incomplete-*/**",
+      "coverage/**",
+      ".codex-ppt02/**",
+      "练习/**",
+      "output/**",
+    ],
   },
 ];
