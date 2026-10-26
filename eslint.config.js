@@ -44,6 +44,8 @@ module.exports = [
       ".codex-ppt02/**",
       "练习/**",
       "output/**",
+      "feynman-platform-frontend/**",
+      "whisper-service/**",
     ],
   },
 ];
