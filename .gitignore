@@ -15,3 +15,4 @@ output/配音试听/
 .data/
 video/node_modules/
 video/output/
+video/.venv/

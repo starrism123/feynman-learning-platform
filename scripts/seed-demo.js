@@ -1,5 +1,6 @@
 // 给演示和录屏准备一套固定数据：一个演示账号 + 几个知识点。
 // 用法：先 npm run db:local，再 npm run seed:demo（会清掉这个演示账号原有的知识点和复述记录）
+//       npm run seed:demo -- --reset 只删除演示账号本身，供录屏从注册开始
 require("dotenv").config();
 const bcrypt = require("bcryptjs");
 const {
@@ -83,6 +84,19 @@ flowchart LR
 
 async function main() {
   await connectDatabase();
+
+  // 录屏要从注册开始演示：先用 --reset 删掉演示账号，在页面上注册后再运行一次本脚本补上知识点
+  if (process.argv.includes("--reset")) {
+    const existing = await User.findOne({ email: DEMO_USER.email });
+    if (existing) {
+      await FeynmanAttempt.deleteMany({ user: existing._id });
+      await KnowledgePoint.deleteMany({ user: existing._id });
+      await existing.deleteOne();
+    }
+    console.log(`已删除演示账号：${DEMO_USER.email}`);
+    await disconnectDatabase();
+    return;
+  }
 
   let user = await User.findOne({ email: DEMO_USER.email });
   if (!user) {
