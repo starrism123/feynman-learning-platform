@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { forceCenter, forceLink, forceManyBody, forceSimulation } from 'd3-force-3d';
+import { forceCenter, forceLink, forceManyBody, forceSimulation, forceX, forceY, forceZ } from 'd3-force-3d';
 import apiClient, { getErrorMessage } from '../api/axios';
 import { createGraphObjects, createStage, pickNode } from '../three/knowledgeScene';
 
 // 第 14 课：3D 知识宇宙。和第 13 课用同一套场景代码，区别是节点位置：
 // 不再随机撒点，而是交给 d3-force-3d 力导向模拟——连线像弹簧把相关的知识点拉近，
-// 节点之间互相排斥不重叠，中心力把整体拉回原点。模拟每一帧推进一步，星球慢慢「散开、落位」。
+// 节点之间互相排斥不重叠，中心力把整体挪回原点，再加一点向原点的引力。模拟每一帧推进一步，星球慢慢「散开、落位」。
 // 挑战：点击星球选中它，它和邻居高亮、其余变暗（Raycaster 拾取）。
 
 // 按下到抬起移动超过这个距离（像素）算拖动视角，不算点击
@@ -43,6 +43,10 @@ function KnowledgeUniversePage() {
       )
       .force('charge', forceManyBody().strength(-160))
       .force('center', forceCenter(0, 0, 0))
+      // forceCenter 只平移整体，不拉单个点；没有连线的知识点会被斥力一路推出画面，所以每个点再加一点向原点的引力
+      .force('x', forceX(0).strength(0.08))
+      .force('y', forceY(0).strength(0.08))
+      .force('z', forceZ(0).strength(0.08))
       // d3 默认用自己的定时器推进；这里停掉，改在 Three.js 的动画循环里每帧推进一步，两边节奏一致
       .stop();
 
