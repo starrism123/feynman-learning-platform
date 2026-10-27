@@ -60,6 +60,20 @@ AJAX 教学页默认位于 `127.0.0.1:5173`，API 默认位于 `127.0.0.1:3000`�
 
 ECharts 的提示框按 HTML 渲染，知识点标题会先用 `format.encodeHTML` 转义。图表库较大，图谱页按需加载，打开时才下载 ECharts。
 
+## 3D 视界（第 13 课）
+
+前端「3D 视界」页（`/3d-world`）用 Three.js 把知识图谱的数据放进三维空间，有两个模式：
+
+- 入门：旋转立方体。Three.js 的最小程序：场景（Scene）、透视相机（PerspectiveCamera）、渲染器（WebGLRenderer），再加一个网格（Mesh = 几何体 + 材质），每一帧转一点。
+- 知识宇宙：知识点是球（随机撒在 200×200×200 的空间里，内容越长球越大），图谱的两种边画成线段；节点名用 CSS2DRenderer 叠成 HTML 标签。鼠标悬停时用 Raycaster 从相机穿过鼠标位置发射线，碰到的球变橙色，和它相连的线、邻居一起高亮（第 13 课挑战）。
+
+场景代码在 `feynman-platform-frontend/src/three/knowledgeScene.js`，第 14 课会复用。几个容易踩的点：
+
+- React 开发模式会把 `useEffect` 执行两次，组件卸载时必须调用 `dispose()`：停动画循环、释放几何体和材质、移除画布，否则画布叠两层、显存一直涨。
+- 鼠标坐标要按画布自己的 `getBoundingClientRect()` 换算成 -1 到 1，不能用窗口大小，画布不占满窗口时会拾取偏。
+- 节点标签用 `textContent` 填，不拼 HTML。
+- Three.js 约 560 KB（gzip 后约 140 KB），页面按需加载。
+
 ## 配置与安全边界
 
 - `MONGO_URI`、`JWT_SECRET`、`JWT_EXPIRES_IN`、`PORT` 是运行配置；JWT 密钥至少 32 个字符。
@@ -81,7 +95,7 @@ ECharts 的提示框按 HTML 渲染，知识点标题会先用 `format.encodeHTM
 - AJAX 演示的固定 JWT 密钥仅用于独立的临时学习进程，不得用于普通启动或公开部署。
 - Docker 完整验收需要 Docker Desktop 引擎已启动。
 - Atlas 账号、IP 白名单及个人密钥无法由仓库预置。
-- 第 11 课的问答是单轮的，不记上下文：追问「那它呢」时检索不到上一轮说的东西。3D 和桌面端尚未实现。
+- 第 11 课的问答是单轮的，不记上下文：追问「那它呢」时检索不到上一轮说的东西。力导向 3D 布局和桌面端尚未实现。
 - 知识图谱每次请求都重新计算两两相似度，知识点到几百个时（几万对）会明显变慢，届时要缓存或只算近邻。演示数据只有一条引用边（「跨域与 CORS」正文提到「JWT 登录认证」）。
 - 「标题点名保底」只对标题里有英文术语的知识点生效；纯中文的概念名一句话问多个时，仍可能漏掉一部分。
 - 向量化依赖本机 AI 服务；测试里用 `RAG_INDEXING=off` 关闭后台向量化，把 `WHISPER_URL` 指向空端口，并 mock `embeddingService.embed` 和 `embeddingService.health`。

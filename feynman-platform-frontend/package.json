@@ -12,6 +12,7 @@
   "dependencies": {
     "@uiw/react-md-editor": "^4.1.5",
     "axios": "^1.20.0",
+    "d3-force-3d": "^3.0.6",
     "dompurify": "^3.4.17",
     "echarts": "^6.1.0",
     "echarts-for-react": "^3.0.6",
@@ -24,7 +25,8 @@
     "react-router-dom": "^7.18.4",
     "rehype-katex": "^7.0.1",
     "remark-gfm": "^4.0.1",
-    "remark-math": "^6.0.0"
+    "remark-math": "^6.0.0",
+    "three": "^0.186.1"
   },
   "devDependencies": {
     "@types/react": "^19.3.0",
