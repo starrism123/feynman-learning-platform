@@ -897,6 +897,43 @@
           ]
         }
       ]
+    },
+    {
+      "name": "06 知识图谱",
+      "item": [
+        {
+          "name": "知识图谱数据",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": "{{baseUrl}}/api/graph/knowledge-map"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"返回节点和连线\", () => {",
+                  "  const data = pm.response.json().data;",
+                  "  pm.expect(data.nodes).to.be.an(\"array\");",
+                  "  pm.expect(data.links).to.be.an(\"array\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
     }
   ]
 }

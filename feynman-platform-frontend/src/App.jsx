@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -9,6 +10,9 @@ import KnowledgePointDetailPage from './pages/KnowledgePointDetailPage';
 import FeynmanRecordPage from './pages/FeynmanRecordPage';
 import QuizPage from './pages/QuizPage';
 import AgentPage from './pages/AgentPage';
+
+// 图表库体积大，按需加载：只有打开图谱页时才下载 ECharts
+const GraphPage = lazy(() => import('./pages/GraphPage'));
 import NotFoundPage from './pages/NotFoundPage';
 
 function App() {
@@ -28,6 +32,14 @@ function App() {
           <Route path="/feynman/:id" element={<FeynmanRecordPage />} />
           <Route path="/quiz/:id" element={<QuizPage />} />
           <Route path="/agent" element={<AgentPage />} />
+          <Route
+            path="/graph"
+            element={
+              <Suspense fallback={<p className="muted">正在加载…</p>}>
+                <GraphPage />
+              </Suspense>
+            }
+          />
         </Route>
 
         <Route path="*" element={<NotFoundPage />} />

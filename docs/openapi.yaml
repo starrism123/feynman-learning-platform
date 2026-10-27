@@ -12,6 +12,7 @@ tags:
   - name: 语音
   - name: AI
   - name: 知识库
+  - name: 知识图谱
 paths:
   /:
     get:
@@ -391,6 +392,15 @@ paths:
         "400": { $ref: "#/components/responses/BadRequest" }
         "401": { $ref: "#/components/responses/Unauthorized" }
         "503": { description: 向量化服务未启动 }
+  /api/graph/knowledge-map:
+    get:
+      tags: [知识图谱]
+      summary: 知识图谱数据（第 12 课）
+      description: 返回当前用户的 nodes（id、name、value 为正文前 100 字、symbolSize、status、indexed）和 links。links 的 type 为 reference（source 的正文提到了 target 的标题，有方向）或 similar（两个知识点的平均向量互为前 meta.similarNeighbors 名近邻，score 为余弦相似度）。meta.unindexed 是还没建向量索引的知识点数。
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200": { description: 返回 nodes、links、meta }
+        "401": { $ref: "#/components/responses/Unauthorized" }
 components:
   securitySchemes:
     bearerAuth:

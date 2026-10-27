@@ -26,6 +26,7 @@ function Layout() {
               </NavLink>
               <NavLink to="/kp/new">新建</NavLink>
               <NavLink to="/agent">AI 助手</NavLink>
+              <NavLink to="/graph">知识图谱</NavLink>
               <span className="nav-user">{user?.username}</span>
               <button type="button" className="btn btn-ghost" onClick={handleLogout}>
                 退出登录

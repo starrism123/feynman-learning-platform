@@ -107,7 +107,7 @@ flowchart LR
 
 CORS 是后端在响应头里声明「允许哪些来源访问」，比如 \`Access-Control-Allow-Origin\`。浏览器看到声明后才把响应交给前端代码。带自定义请求头（如 Authorization）的请求，浏览器会先发一个 OPTIONS **预检请求**问后端是否允许。
 
-注意：CORS 是浏览器的限制，不是服务器的防护。用 Postman 或 curl 直接请求不受它约束，接口的安全还是要靠认证。`,
+注意：CORS 是浏览器的限制，不是服务器的防护。用 Postman 或 curl 直接请求不受它约束，接口的安全还是要靠认证，见「JWT 登录认证」。`,
   },
   {
     title: "useEffect 与副作用",
