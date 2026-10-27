@@ -46,10 +46,13 @@ function splitSections(text) {
 
 // 先按标题分节，节内再按段落、换行、中文句子切；每块开头带上标题路径，
 // 避免标题和正文被切到两块里。对比见 docs/rag-splitter-comparison.md
-function createSplitter() {
+function createSplitter({
+  chunkSize = CHUNK_SIZE,
+  chunkOverlap = CHUNK_OVERLAP,
+} = {}) {
   const splitter = new RecursiveCharacterTextSplitter({
-    chunkSize: CHUNK_SIZE,
-    chunkOverlap: CHUNK_OVERLAP,
+    chunkSize,
+    chunkOverlap,
     separators: SEPARATORS,
     keepSeparator: true,
   });
@@ -157,7 +160,46 @@ function dot(a, b) {
   return sum;
 }
 
-async function search(userId, query, { limit = 4 } = {}) {
+// 第 11 课：点名保底。一句话同时问几个概念时（「JWT、bcrypt 和 CORS 各解决什么」），
+// 问题向量是几个主题的「平均」，和每个知识点都不太像，纯向量检索会漏掉其中几个。
+// 知识点标题是用户自己起的主题名，问题里出现了标题中的英文术语，就等于点名要这个知识点：
+// 它最相关的一块一定入选，不受相关度门槛限制；其余名额仍按向量相似度排。
+// 试过「向量 + 全文关键词」的混合排序，单个问题的命中率反而下降，对比见 docs/rag-retrieval-eval.md
+function keywordTerms(query) {
+  const words = query.match(/[A-Za-z][w.+#-]*[A-Za-z0-9+#]/g) || [];
+  return [...new Set(words.map((word) => word.toLowerCase()))];
+}
+
+function rankChunks(
+  query,
+  queryVector,
+  chunks,
+  { limit = 4, minScore = 0 } = {},
+) {
+  const terms = keywordTerms(query);
+  const ranked = chunks
+    .map((chunk) => ({ ...chunk, score: dot(queryVector, chunk.embedding) }))
+    .sort((a, b) => b.score - a.score);
+
+  const picked = [];
+  const named = new Set();
+  for (const chunk of ranked) {
+    const key = String(chunk.knowledgePointId);
+    const title = chunk.title.toLowerCase();
+    if (!named.has(key) && terms.some((term) => title.includes(term))) {
+      named.add(key);
+      picked.push(chunk);
+    }
+  }
+  picked.splice(limit);
+  for (const chunk of ranked) {
+    if (picked.length >= limit) break;
+    if (chunk.score >= minScore && !picked.includes(chunk)) picked.push(chunk);
+  }
+  return picked.sort((a, b) => b.score - a.score);
+}
+
+async function search(userId, query, { limit = 4, minScore = 0 } = {}) {
   const {
     embeddings: [queryVector],
     model,
@@ -167,7 +209,7 @@ async function search(userId, query, { limit = 4 } = {}) {
   const chunks = await KnowledgeChunk.find({ user: userId, model })
     .populate("knowledgePoint", "title")
     .lean();
-  return chunks
+  const candidates = chunks
     .filter(
       (chunk) =>
         chunk.knowledgePoint && chunk.embedding.length === queryVector.length,
@@ -177,10 +219,12 @@ async function search(userId, query, { limit = 4 } = {}) {
       title: chunk.knowledgePoint.title,
       index: chunk.index,
       text: chunk.text,
-      score: dot(queryVector, chunk.embedding),
-    }))
-    .sort((a, b) => b.score - a.score)
-    .slice(0, limit);
+      embedding: chunk.embedding,
+    }));
+  return rankChunks(query, queryVector, candidates, { limit, minScore }).map(
+    // eslint-disable-next-line no-unused-vars
+    ({ embedding, ...result }) => result,
+  );
 }
 
 module.exports = {
@@ -188,6 +232,7 @@ module.exports = {
   CHUNK_OVERLAP,
   contentHash,
   createSplitter,
+  rankChunks,
   indexKnowledgePoint,
   indexInBackground,
   removeKnowledgePoint,

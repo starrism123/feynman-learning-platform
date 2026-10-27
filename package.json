@@ -17,7 +17,8 @@
     "db:local": "node scripts/local-db.js",
     "seed:demo": "node scripts/seed-demo.js",
     "rag:compare-splitters": "node scripts/compare-splitters.js",
-    "rag:check": "node scripts/check-embedding.js"
+    "rag:check": "node scripts/check-embedding.js",
+    "rag:eval": "node scripts/eval-retrieval.js && prettier --write docs/rag-retrieval-eval.md"
   },
   "engines": {
     "node": ">=20"

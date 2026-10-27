@@ -34,36 +34,66 @@ function parseJson(content) {
   return JSON.parse(raw.slice(start, end + 1));
 }
 
-async function callProvider(provider, messages, temperature) {
-  const response = await axios.post(
+function requestCompletion(provider, messages, options) {
+  const { temperature, json = false, stream = false, signal } = options;
+  return axios.post(
     `${provider.baseURL}/chat/completions`,
     {
       model: provider.model,
       messages,
       temperature,
-      response_format: { type: "json_object" },
+      ...(json && { response_format: { type: "json_object" } }),
+      ...(stream && { stream: true }),
     },
     {
       headers: { Authorization: `Bearer ${provider.apiKey}` },
       timeout: provider.timeout,
+      signal,
+      ...(stream && { responseType: "stream" }),
     },
   );
-  return parseJson(response.data.choices[0].message.content);
 }
 
-async function chatJson(messages, { temperature = 0.3 } = {}) {
+// 流式响应是一行行的 SSE：data: {...增量...}，最后一行 data: [DONE]。
+// 网络分包可能把一个汉字的几个字节拆到两包里，所以用 TextDecoder 按流解码，不能直接 toString
+async function readStream(stream, onToken) {
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let text = "";
+  for await (const chunk of stream) {
+    buffer += decoder.decode(chunk, { stream: true });
+    const lines = buffer.split("\n");
+    buffer = lines.pop();
+    for (const line of lines) {
+      if (!line.startsWith("data:")) continue;
+      const data = line.slice(5).trim();
+      if (data === "[DONE]") return text;
+      const delta = JSON.parse(data).choices?.[0]?.delta?.content;
+      if (delta) {
+        text += delta;
+        onToken(delta);
+      }
+    }
+  }
+  return text;
+}
+
+// 按顺序尝试每个模型服务，前一个失败就换下一个。
+// run 抛出带 noFallback 的错误时直接放弃：流式回答已经发出去一半，不能再换模型从头说
+async function withFallback(run) {
   const failures = [];
   for (const provider of getProviders()) {
     const startedAt = Date.now();
     try {
-      const data = await callProvider(provider, messages, temperature);
+      const result = await run(provider);
       return {
-        data,
+        ...result,
         provider: provider.name,
         model: provider.model,
         latencyMs: Date.now() - startedAt,
       };
     } catch (error) {
+      if (error.noFallback || error.name === "CanceledError") throw error;
       const reason = error.response?.data?.error?.message || error.message;
       console.warn(`[LLM] ${provider.name} 调用失败，尝试下一个：${reason}`);
       failures.push(`${provider.name}：${reason}`);
@@ -77,4 +107,49 @@ async function chatJson(messages, { temperature = 0.3 } = {}) {
   );
 }
 
-module.exports = { chatJson, parseJson, getProviders };
+async function chatJson(messages, { temperature = 0.3 } = {}) {
+  return withFallback(async (provider) => {
+    const response = await requestCompletion(provider, messages, {
+      temperature,
+      json: true,
+    });
+    return { data: parseJson(response.data.choices[0].message.content) };
+  });
+}
+
+// 第 11 课：普通文本回答（知识库问答的非流式接口用）
+async function chatText(messages, { temperature = 0.3 } = {}) {
+  return withFallback(async (provider) => {
+    const response = await requestCompletion(provider, messages, {
+      temperature,
+    });
+    return { text: response.data.choices[0].message.content };
+  });
+}
+
+// 第 11 课：流式回答，每生成一小段就回调 onToken。signal 用来在用户关掉页面时中止请求
+async function chatStream(
+  messages,
+  { temperature = 0.3, onToken, signal } = {},
+) {
+  return withFallback(async (provider) => {
+    const response = await requestCompletion(provider, messages, {
+      temperature,
+      stream: true,
+      signal,
+    });
+    let started = false;
+    try {
+      const text = await readStream(response.data, (delta) => {
+        started = true;
+        onToken(delta);
+      });
+      return { text };
+    } catch (error) {
+      error.noFallback = started;
+      throw error;
+    }
+  });
+}
+
+module.exports = { chatJson, chatText, chatStream, parseJson, getProviders };

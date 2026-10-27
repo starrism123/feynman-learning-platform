@@ -8,6 +8,7 @@ import KnowledgePointFormPage from './pages/KnowledgePointFormPage';
 import KnowledgePointDetailPage from './pages/KnowledgePointDetailPage';
 import FeynmanRecordPage from './pages/FeynmanRecordPage';
 import QuizPage from './pages/QuizPage';
+import AgentPage from './pages/AgentPage';
 import NotFoundPage from './pages/NotFoundPage';
 
 function App() {
@@ -26,6 +27,7 @@ function App() {
           <Route path="/kp/:id" element={<KnowledgePointDetailPage />} />
           <Route path="/feynman/:id" element={<FeynmanRecordPage />} />
           <Route path="/quiz/:id" element={<QuizPage />} />
+          <Route path="/agent" element={<AgentPage />} />
         </Route>
 
         <Route path="*" element={<NotFoundPage />} />

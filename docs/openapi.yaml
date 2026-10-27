@@ -327,7 +327,7 @@ paths:
     post:
       tags: [知识库]
       summary: 语义检索（第 10 课）
-      description: 只检索、不调用大模型，返回和问题最相似的文本块及相似度（0–1，越大越相关）。只和当前向量模型算出的块比较。
+      description: 只检索、不调用大模型，返回和问题最相似的文本块及相似度（0–1，越大越相关）。只和当前向量模型算出的块比较；知识点标题里的英文术语被问题点名时，该知识点最相关的一块一定入选。这里不设相关度门槛，用来观察检索结果。
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
@@ -343,6 +343,54 @@ paths:
         "200": { description: 返回 results（title、text、score 等） }
         "400": { $ref: "#/components/responses/BadRequest" }
         "401": { $ref: "#/components/responses/Unauthorized" }
+  /api/ai/rag-qa:
+    post:
+      tags: [知识库]
+      summary: 知识库问答（第 11 课）
+      description: 检索当前用户最相关的最多 4 个文本块（相似度不低于 0.3，或知识点标题里的英文术语被问题点名），拼进提示词交给大模型，只根据这些资料回答，并在句末用 [1]、[2] 标注来源。一块都没有时不调用大模型，直接回答「知识库里没有」，此时 provider 为 null。
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [question]
+              properties:
+                question: { type: string, maxLength: 500 }
+      responses:
+        "200":
+          {
+            description: 返回 answer、sources（id、knowledgePointId、title、text、score）、provider、model,
+          }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "502": { description: 所有大模型服务都不可用 }
+        "503": { description: 向量化服务未启动 }
+  /api/ai/rag-qa/stream:
+    post:
+      tags: [知识库]
+      summary: 知识库问答，流式输出（第 11 课）
+      description: 请求体同 /api/ai/rag-qa。响应是 text/event-stream，依次推送 sources 事件（data 为 {sources}）、若干 token 事件（data 为 {text}，回答片段）、最后一个 done 事件（data 为 {provider, model, latencyMs}）。回答途中出错时推送 error 事件（data 为 {code, message}）。问题校验失败或检索出错时，在推送开始前返回普通 JSON 错误。
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [question]
+              properties:
+                question: { type: string, maxLength: 500 }
+      responses:
+        "200":
+          description: SSE 事件流
+          content:
+            text/event-stream:
+              schema: { type: string }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "503": { description: 向量化服务未启动 }
 components:
   securitySchemes:
     bearerAuth:

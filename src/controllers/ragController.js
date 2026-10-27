@@ -5,6 +5,8 @@ const KnowledgePoint = require("../models/KnowledgePoint");
 const KnowledgeChunk = require("../models/KnowledgeChunk");
 const vectorStoreService = require("../services/vectorStoreService");
 const embeddingService = require("../services/embeddingService");
+const llmService = require("../services/llmService");
+const ragService = require("../services/ragService");
 
 // 第 10 课：查看和维护当前用户的向量库
 
@@ -92,4 +94,98 @@ async function searchChunks(req, res) {
   return sendSuccess(res, 200, { query, results });
 }
 
-module.exports = { getStatus, reindex, searchChunks };
+function readQuestion(req) {
+  const question =
+    typeof req.body?.question === "string" ? req.body.question.trim() : "";
+  if (!question || question.length > 500) {
+    throw new AppError(
+      400,
+      "VALIDATION_ERROR",
+      "question 必填且不能超过 500 字",
+    );
+  }
+  return question;
+}
+
+// 第 11 课：知识库问答，一次性返回完整回答和引用来源
+async function answerWithRAG(req, res) {
+  const question = readQuestion(req);
+  const sources = await ragService.retrieve(req.user.id, question);
+  // 没有相关笔记就不调用大模型：省一次调用，也不给模型编造的机会
+  if (!sources.length) {
+    return sendSuccess(res, 200, {
+      answer: ragService.NO_CONTEXT_ANSWER,
+      sources,
+      provider: null,
+      model: null,
+    });
+  }
+  const { text, provider, model, latencyMs } = await llmService.chatText(
+    ragService.buildMessages(question, sources),
+  );
+  return sendSuccess(res, 200, {
+    answer: text.trim(),
+    sources,
+    provider,
+    model,
+    latencyMs,
+  });
+}
+
+// 第 11 课挑战：流式输出。用 SSE（Server-Sent Events）格式一段段推给浏览器：
+// 先推 sources（引用来源），再推若干个 token（回答片段），最后 done 或 error
+async function streamAnswerWithRAG(req, res) {
+  const question = readQuestion(req);
+  // 检索在发响应头之前做：向量化服务没开等错误，照常走统一的 JSON 错误格式
+  const sources = await ragService.retrieve(req.user.id, question);
+
+  res.writeHead(200, {
+    "Content-Type": "text/event-stream; charset=utf-8",
+    "Cache-Control": "no-cache, no-transform",
+    Connection: "keep-alive",
+  });
+  const send = (event, data) =>
+    res.write(`event: ${event}
+data: ${JSON.stringify(data)}
+
+`);
+  send("sources", { sources });
+
+  if (!sources.length) {
+    send("token", { text: ragService.NO_CONTEXT_ANSWER });
+    send("done", { provider: null, model: null });
+    return res.end();
+  }
+
+  // 用户关掉页面或点了停止，就中止对大模型的请求，不再白白生成
+  const controller = new AbortController();
+  res.on("close", () => controller.abort());
+  try {
+    const { provider, model, latencyMs } = await llmService.chatStream(
+      ragService.buildMessages(question, sources),
+      {
+        signal: controller.signal,
+        onToken: (text) => send("token", { text }),
+      },
+    );
+    send("done", { provider, model, latencyMs });
+  } catch (error) {
+    if (!controller.signal.aborted) {
+      // 响应头已经发出，不能再改状态码，只能用一个 error 事件告诉前端
+      send("error", {
+        code: error instanceof AppError ? error.code : "LLM_STREAM_ERROR",
+        message:
+          error instanceof AppError ? error.message : "回答生成中断，请重试",
+      });
+    }
+  }
+  return res.end();
+}
+
+module.exports = {
+  getStatus,
+  reindex,
+  searchChunks,
+  answerWithRAG,
+  streamAnswerWithRAG,
+};
