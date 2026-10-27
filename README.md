@@ -1,4 +1,4 @@
-# 费曼学习平台：第 1–15 课完整实践
+# 费曼学习平台：第 1–16 课完整实践
 
 本项目是《大前端与AI实战》的课程项目：用户写下知识点，用自己的话录音复述，AI 转写、点评打分，再出题测评。目录名虽然是 `Android`，实际是 Node.js 后端 + React 前端 + Python 语音识别服务。
 
@@ -15,7 +15,7 @@
 | 知识宇宙     | 前端「知识宇宙」                                        | Three.js + d3-force-3d 三维力导向布局；点击选中高亮              | 第 14 课     |
 | 桌面端和 PWA | `feynman-platform-frontend/electron/`、`vite.config.js` | Electron 打包 Windows 安装程序；网页版可在 Chrome 安装、离线打开 | 第 15 课     |
 
-## 第 4–15 课：完整运行（前端 + 后端 + AI）
+## 第 4–16 课：完整运行（前端 + 后端 + AI）
 
 需要 Node.js 20+、Python 3.12、[Ollama](https://ollama.com)。模型都放在 F 盘：Whisper 模型在 `F:\AI-models\whisper`，向量模型在 `F:\AI-models\embedding\bge-base-zh-v1.5`，Ollama 模型在 `F:\AI-models\ollama-models`（由用户环境变量 `OLLAMA_MODELS` 指定）。
 
@@ -62,6 +62,8 @@ npm run build; npm run preview   # PWA：打开 http://localhost:4173，地址�
 第一次打包会下载 Electron（约 150MB）和打包工具。想放在 F 盘，先在同一个终端设 `$env:electron_config_cache="F:\AI-models\electron-cache"; $env:ELECTRON_BUILDER_CACHE="F:\AI-models\electron-builder-cache"` 再 `npm install`、打包。
 
 第 11 课的知识库问答：讲义用 LangChain 的 LCEL 把检索、提示词、大模型串成一条链，这里每一步是一个普通函数，按顺序调用（`src/services/ragService.js`）。在讲义基础上做了两道选做题：回答附带编号的引用来源、流式输出（SSE）。检索效果用 `npm run rag:eval` 评测，相关度门槛和块长都按评测数据定，见 [docs/rag-retrieval-eval.md](docs/rag-retrieval-eval.md)。
+
+第 16 课的总结材料：[项目总结](docs/project-summary.md)（实际架构、和讲义的不同、工程问题）、[部署说明](docs/deployment.md)（已有的容器化配置和上线还差什么，没有实际上云）、[汇报演示流程](docs/final-demo.md)（8–10 分钟时间线、演示前检查、常见问题）。
 
 ## 先从这里开始
 
@@ -172,6 +174,7 @@ git show lesson-12
 git show lesson-13
 git show lesson-14
 git show lesson-15
+git show lesson-16
 ```
 
 标签含义：
@@ -187,6 +190,7 @@ git show lesson-15
 - `lesson-13`：Three.js 入门：旋转立方体，知识点随机撒成 3D 星球，鼠标悬停高亮星球和相连的线。
 - `lesson-14`：3D 知识宇宙：d3-force-3d 力导向布局，点击选中知识点，高亮邻居、其余变暗。
 - `lesson-15`：桌面端和 PWA：Electron 打包 Windows 安装程序，网页版可安装、可离线打开。
+- `lesson-16`：项目总结、部署说明（理论）和期末汇报演示流程。
 
 ## 项目结构
 
