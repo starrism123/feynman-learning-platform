@@ -11,6 +11,7 @@ tags:
   - name: 知识点
   - name: 语音
   - name: AI
+  - name: 知识库
 paths:
   /:
     get:
@@ -300,6 +301,45 @@ paths:
       responses:
         "200": { description: 返回 isCorrect、score、explanation }
         "400": { $ref: "#/components/responses/BadRequest" }
+  /api/rag/status:
+    get:
+      tags: [知识库]
+      summary: 查看向量库状态（第 10 课）
+      description: 每个知识点切成了几个文本块、最近一次建索引的时间和向量模型。chunks 为 0 表示还没进向量库。
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200": { description: 返回 knowledgePoints、totalChunks、missing }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+  /api/rag/reindex:
+    post:
+      tags: [知识库]
+      summary: 重建当前用户的向量索引（第 10 课）
+      description: 把当前用户的所有知识点重新切块、向量化。需要本机 AI 服务（whisper-service）已启动，否则返回 503。
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200": { description: 返回重建的知识点数和文本块数 }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "503": { description: 向量化服务未启动 }
+  /api/rag/search:
+    post:
+      tags: [知识库]
+      summary: 语义检索（第 10 课）
+      description: 只检索、不调用大模型，返回和问题最相似的文本块及相似度（0–1，越大越相关）。
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [query]
+              properties:
+                query: { type: string, maxLength: 500 }
+                limit: { type: integer, minimum: 1, maximum: 10, default: 4 }
+      responses:
+        "200": { description: 返回 results（title、text、score 等） }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
 components:
   securitySchemes:
     bearerAuth:

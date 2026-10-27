@@ -22,6 +22,14 @@ AJAX 教学页默认位于 `127.0.0.1:5173`，API 默认位于 `127.0.0.1:3000`�
 
 知识点所有权在数据库查询条件中同时校验 `_id` 和 `user`。未找到与越权统一返回 404，防止资源枚举。更新只允许四个业务字段，密码默认不参与 Mongoose 查询及 JSON 序列化。
 
+## 知识库（第 10 课）
+
+知识点创建或标题、内容修改后，`vectorStoreService.indexInBackground` 在后台把它切块、向量化，存进 `KnowledgeChunk`；接口先返回，不等向量化完成。只改状态或复习标记不会重新向量化。删除知识点时同步删除它的全部文本块。
+
+切分先按 Markdown 标题分节，节内按段落、换行、中文句号断开，块长 300 字、重叠 50 字，每块开头带上标题路径；向量化时再拼上知识点标题。向量由本机 AI 服务（`whisper-service/app.py` 的 `/embed`，bge-base-zh-v1.5）计算并归一化，检索时用点积（即余弦相似度）逐块打分。个人知识库只有几百块，逐块计算约 50 毫秒；块数到上万再换 HNSW 等近似索引。切分方式的对比见 `docs/rag-splitter-comparison.md`。
+
+向量化失败（例如 AI 服务没启动）只记日志，旧的块保留；之后调用 `POST /api/rag/reindex` 重建。`GET /api/rag/status` 查看每个知识点的块数，`POST /api/rag/search` 只做检索、不调用大模型，用来观察召回结果。
+
 ## 配置与安全边界
 
 - `MONGO_URI`、`JWT_SECRET`、`JWT_EXPIRES_IN`、`PORT` 是运行配置；JWT 密钥至少 32 个字符。
@@ -43,6 +51,7 @@ AJAX 教学页默认位于 `127.0.0.1:5173`，API 默认位于 `127.0.0.1:3000`�
 - AJAX 演示的固定 JWT 密钥仅用于独立的临时学习进程，不得用于普通启动或公开部署。
 - Docker 完整验收需要 Docker Desktop 引擎已启动。
 - Atlas 账号、IP 白名单及个人密钥无法由仓库预置。
-- 本项目是前三课后端，不包含 Android、React、录音、AI 或知识图谱功能。
+- 第 10 课只完成知识库的建库和检索；基于知识库的问答（第 11 课）、知识图谱、3D 和桌面端尚未实现。
+- 向量化依赖本机 AI 服务；测试里用 `RAG_INDEXING=off` 关闭后台向量化，并 mock `embeddingService.embed`。
 
 <!-- project-knowledge-sync:managed-manual:end -->

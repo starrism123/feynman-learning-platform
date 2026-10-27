@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const KnowledgePoint = require("../models/KnowledgePoint");
 const { AppError } = require("../utils/appError");
 const { sendSuccess } = require("../utils/response");
+const vectorStoreService = require("../services/vectorStoreService");
 const {
   normalizeKnowledgePoint,
 } = require("../validators/knowledgePointValidator");
@@ -30,6 +31,8 @@ async function createKnowledgePoint(req, res) {
     ...input,
     user: req.user.id,
   });
+  // 第 10 课：新知识点自动进入向量库，供 AI 助手检索
+  vectorStoreService.indexInBackground(knowledgePoint);
   return sendSuccess(res, 201, { knowledgePoint }, "知识点创建成功");
 }
 
@@ -59,8 +62,14 @@ async function updateKnowledgePoint(req, res) {
     req.user.id,
   );
   const updates = normalizeKnowledgePoint(req.body, { partial: true });
+  const textChanged = ["title", "content"].some(
+    (field) =>
+      Object.hasOwn(updates, field) && updates[field] !== knowledgePoint[field],
+  );
   Object.assign(knowledgePoint, updates);
   await knowledgePoint.save();
+  // 只改状态、复习标记时不用重新向量化
+  if (textChanged) vectorStoreService.indexInBackground(knowledgePoint);
   return sendSuccess(res, 200, { knowledgePoint }, "知识点更新成功");
 }
 
@@ -70,6 +79,7 @@ async function deleteKnowledgePoint(req, res) {
     req.user.id,
   );
   await knowledgePoint.deleteOne();
+  await vectorStoreService.removeKnowledgePoint(knowledgePoint._id);
   return sendSuccess(res, 200, { id: req.params.id }, "知识点删除成功");
 }
 

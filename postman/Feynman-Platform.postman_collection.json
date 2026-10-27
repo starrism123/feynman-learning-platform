@@ -683,6 +683,104 @@
           ]
         }
       ]
+    },
+    {
+      "name": "05 知识库 RAG（需先启动 whisper-service 做向量化）",
+      "item": [
+        {
+          "name": "重建向量索引",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": "{{baseUrl}}/api/rag/reindex"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"重建返回 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "查看向量库状态",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": "{{baseUrl}}/api/rag/status"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"每个知识点都有文本块\", () => pm.expect(pm.response.json().data.missing).to.eql(0));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "语义检索",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"token 过期了会怎样？\",\n  \"limit\": 3\n}"
+            },
+            "url": "{{baseUrl}}/api/rag/search"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"返回相似片段\", () => pm.expect(pm.response.json().data.results.length).to.be.above(0));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
     }
   ]
 }

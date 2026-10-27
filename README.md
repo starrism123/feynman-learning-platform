@@ -1,17 +1,18 @@
-# 费曼学习平台：第 1–9 课完整实践
+# 费曼学习平台：第 1–10 课完整实践
 
 本项目是《大前端与AI实战》的课程项目：用户写下知识点，用自己的话录音复述，AI 转写、点评打分，再出题测评。目录名虽然是 `Android`，实际是 Node.js 后端 + React 前端 + Python 语音识别服务。
 
-| 部分     | 目录                         | 技术                                                 | 对应课次     |
-| -------- | ---------------------------- | ---------------------------------------------------- | ------------ |
-| 后端     | `src/`                       | Express 5、MongoDB/Mongoose、JWT                     | 第 1–3 课    |
-| 前端     | `feynman-platform-frontend/` | React 19、Vite、React Router、Markdown/KaTeX/Mermaid | 第 4–6 课    |
-| 语音识别 | `whisper-service/`           | Flask + 本地 Whisper（small）                        | 第 7、7.5 课 |
-| AI 能力  | `src/services/`              | DeepSeek 优先，本地 Ollama（qwen2.5:7b）兜底         | 第 8–9 课    |
+| 部分     | 目录                                 | 技术                                                     | 对应课次     |
+| -------- | ------------------------------------ | -------------------------------------------------------- | ------------ |
+| 后端     | `src/`                               | Express 5、MongoDB/Mongoose、JWT                         | 第 1–3 课    |
+| 前端     | `feynman-platform-frontend/`         | React 19、Vite、React Router、Markdown/KaTeX/Mermaid     | 第 4–6 课    |
+| 语音识别 | `whisper-service/`                   | Flask + 本地 Whisper（small）                            | 第 7、7.5 课 |
+| AI 能力  | `src/services/`                      | DeepSeek 优先，本地 Ollama（qwen2.5:7b）兜底             | 第 8–9 课    |
+| 知识库   | `src/services/vectorStoreService.js` | 文本切分 + 本地 bge-base-zh-v1.5 向量化 + MongoDB 存向量 | 第 10 课     |
 
-## 第 4–9 课：完整运行（前端 + 后端 + AI）
+## 第 4–10 课：完整运行（前端 + 后端 + AI）
 
-需要 Node.js 20+、Python 3.12、[Ollama](https://ollama.com)。模型都放在 F 盘：Whisper 模型在 `F:\AI-models\whisper`，Ollama 模型在 `F:\AI-models\ollama-models`（由用户环境变量 `OLLAMA_MODELS` 指定）。
+需要 Node.js 20+、Python 3.12、[Ollama](https://ollama.com)。模型都放在 F 盘：Whisper 模型在 `F:\AI-models\whisper`，向量模型在 `F:\AI-models\embedding\bge-base-zh-v1.5`，Ollama 模型在 `F:\AI-models\ollama-models`（由用户环境变量 `OLLAMA_MODELS` 指定）。
 
 第一次准备：
 
@@ -21,6 +22,8 @@ Copy-Item .env.example .env   # 填 JWT_SECRET；有 DeepSeek key 就填 DEEPSEE
 cd feynman-platform-frontend; npm install; cd ..
 cd whisper-service; py -3.12 -m venv .venv; .\.venv\Scripts\pip install -r requirements.txt; cd ..
 ollama pull qwen2.5:7b
+# 向量模型：从 https://modelscope.cn/models/BAAI/bge-base-zh-v1.5/files 下载 config.json、pytorch_model.bin、
+# special_tokens_map.json、tokenizer.json、tokenizer_config.json、vocab.txt 到 F:\AI-models\embedding\bge-base-zh-v1.5
 ```
 
 每次启动，各开一个终端：
@@ -29,15 +32,17 @@ ollama pull qwen2.5:7b
 npm run db:local                                      # 本机 MongoDB，数据存在 .data/mongo，重启不丢
 npm run dev                                           # 后端 http://localhost:3000
 cd feynman-platform-frontend; npm run dev             # 前端 http://localhost:5173
-cd whisper-service; .\.venv\Scripts\python app.py  # 语音识别 http://127.0.0.1:5001
+cd whisper-service; .\.venv\Scripts\python app.py  # 语音识别 + 向量化 http://127.0.0.1:5001
 ollama serve                                          # 本地大模型 http://127.0.0.1:11434，已在后台运行就不用开
 ```
 
-想要一套固定的演示数据（录屏用）：运行 `npm run seed:demo`，会创建演示账号 `demo@feynman.test` 和 3 个知识点，密码见 `scripts/seed-demo.js`。
+想要一套固定的演示数据（录屏用）：运行 `npm run seed:demo`，会创建演示账号 `demo@feynman.test` 和 8 个知识点，并建好向量索引（需要 whisper-service 已启动），密码见 `scripts/seed-demo.js`。
 
 用户流程：注册/登录 → 知识点列表 → 开始复述（录音 → Whisper 转写 → 可修改文字）→ AI 教练点评（润色、四维打分、优缺点，低于 60 分自动进入待复习）→ 测评（AI 出单选或简答题，简答题由 AI 判分，答错进入待复习）。
 
 为什么换了讲义里的服务：讲义用百度语音识别，这里换成本地 Whisper，不用申请密钥、不按次计费；大模型按讲义用 DeepSeek，另加本地 Ollama 兜底，没网或没余额时演示也能跑。
+
+第 10 课的知识库：讲义用百度千帆向量化、HNSWLib 存本地文件。这里向量化换成本机的 bge-base-zh-v1.5（和 Whisper 在同一个 Python 服务里），向量存进 MongoDB 的 `knowledgechunks` 集合：知识点更新时整组替换、删除时一起删，不会像 HNSWLib 那样留下旧向量。切分方式的对比见 [docs/rag-splitter-comparison.md](docs/rag-splitter-comparison.md)。
 
 ## 先从这里开始
 
@@ -142,6 +147,7 @@ git show lesson-2
 git show lesson-3
 git show lesson-6
 git show lesson-9
+git show lesson-10
 ```
 
 标签含义：
@@ -151,6 +157,7 @@ git show lesson-9
 - `lesson-3`：JWT、认证中间件、知识点 CRUD、工程化资产和完整学习资料。
 - `lesson-6`：React 前端、登录注册、知识点列表与 Markdown 编辑器。
 - `lesson-9`：录音复述、Whisper 转写、AI 点评、AI 出题与判分。
+- `lesson-10`：知识库建库：文本切分、本地向量化、向量存储和语义检索接口。
 
 ## 项目结构
 

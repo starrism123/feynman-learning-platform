@@ -15,12 +15,14 @@
     "format": "prettier --write .",
     "verify": "npm run format:check && npm run lint && npm test",
     "db:local": "node scripts/local-db.js",
-    "seed:demo": "node scripts/seed-demo.js"
+    "seed:demo": "node scripts/seed-demo.js",
+    "rag:compare-splitters": "node scripts/compare-splitters.js"
   },
   "engines": {
     "node": ">=20"
   },
   "dependencies": {
+    "@langchain/textsplitters": "^1.0.2",
     "axios": "^1.20.0",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
@@ -49,6 +51,9 @@
     ],
     "testMatch": [
       "**/*.test.js"
+    ],
+    "setupFiles": [
+      "<rootDir>/tests/helpers/env.js"
     ]
   }
 }

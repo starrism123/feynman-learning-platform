@@ -1,6 +1,7 @@
 const { MongoMemoryServer } = require("mongodb-memory-server");
 const User = require("../../src/models/User");
 const KnowledgePoint = require("../../src/models/KnowledgePoint");
+const KnowledgeChunk = require("../../src/models/KnowledgeChunk");
 const {
   connectDatabase,
   disconnectDatabase,
@@ -14,7 +15,11 @@ async function startTestDatabase() {
 }
 
 async function clearTestDatabase() {
-  await Promise.all([User.deleteMany({}), KnowledgePoint.deleteMany({})]);
+  await Promise.all([
+    User.deleteMany({}),
+    KnowledgePoint.deleteMany({}),
+    KnowledgeChunk.deleteMany({}),
+  ]);
 }
 
 async function stopTestDatabase() {

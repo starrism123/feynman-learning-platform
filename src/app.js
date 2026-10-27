@@ -8,6 +8,7 @@ const { userRoutes } = require("./routes/userRoutes");
 const { knowledgePointRoutes } = require("./routes/knowledgePointRoutes");
 const { audioRoutes } = require("./routes/audioRoutes");
 const { aiRoutes } = require("./routes/aiRoutes");
+const { ragRoutes } = require("./routes/ragRoutes");
 
 function createApp() {
   const app = express();
@@ -36,6 +37,7 @@ function createApp() {
   app.use("/api/knowledge-points", knowledgePointRoutes);
   app.use("/api/audio", audioRoutes);
   app.use("/api/ai", aiRoutes);
+  app.use("/api/rag", ragRoutes);
   app.post("/api/register", register);
   app.post("/api/login", login);
 
