@@ -14,6 +14,7 @@ import AgentPage from './pages/AgentPage';
 // 图表库体积大，按需加载：只有打开图谱页时才下载 ECharts
 const GraphPage = lazy(() => import('./pages/GraphPage'));
 const ThreeJSPage = lazy(() => import('./pages/ThreeJSPage'));
+const KnowledgeUniversePage = lazy(() => import('./pages/KnowledgeUniversePage'));
 import NotFoundPage from './pages/NotFoundPage';
 
 function App() {
@@ -46,6 +47,14 @@ function App() {
             element={
               <Suspense fallback={<p className="muted">正在加载…</p>}>
                 <ThreeJSPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/universe"
+            element={
+              <Suspense fallback={<p className="muted">正在加载…</p>}>
+                <KnowledgeUniversePage />
               </Suspense>
             }
           />

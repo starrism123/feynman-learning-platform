@@ -28,6 +28,7 @@ function Layout() {
               <NavLink to="/agent">AI 助手</NavLink>
               <NavLink to="/graph">知识图谱</NavLink>
               <NavLink to="/3d-world">3D 视界</NavLink>
+              <NavLink to="/universe">知识宇宙</NavLink>
               <span className="nav-user">{user?.username}</span>
               <button type="button" className="btn btn-ghost" onClick={handleLogout}>
                 退出登录

@@ -5,7 +5,7 @@ import { createGraphObjects, createStage, pickNode } from '../three/knowledgeSce
 
 // 第 13 课：Three.js 入门。
 // 「旋转立方体」是讲义的 Hello World：场景、相机、渲染器 + 几何体 × 材质 = 网格；
-// 「知识宇宙」把第 12 课的图谱数据放进 3D：知识点是星球（随机位置），连线是航线。
+// 「随机星图」把第 12 课的图谱数据放进 3D：知识点是星球（随机位置），连线是航线。
 // 挑战：鼠标悬停在星球上，它和相连的航线一起高亮（Raycaster 光线投射）。
 function ThreeJSPage() {
   const mountRef = useRef(null);
@@ -80,7 +80,7 @@ function ThreeJSPage() {
             className={`btn btn-small ${mode === 'universe' ? 'btn-selected' : ''}`}
             onClick={() => setMode('universe')}
           >
-            知识宇宙
+            随机星图
           </button>
           <button
             type="button"
@@ -98,7 +98,7 @@ function ThreeJSPage() {
           ? '一个立方体 = 几何体（BoxGeometry，形状）+ 材质（MeshStandardMaterial，外观）。'
           : hovered
             ? `鼠标下：${hovered.name}（和它相连的航线已高亮）`
-            : '星球位置是随机的；把鼠标移到星球上，它和相连的航线会高亮。力导向布局见「知识宇宙」页。'}
+            : '星球位置是随机的；把鼠标移到星球上，它和相连的航线会高亮。力导向布局见导航栏的「知识宇宙」。'}
       </p>
     </div>
   );

@@ -1,4 +1,4 @@
-# 费曼学习平台：第 1–13 课完整实践
+# 费曼学习平台：第 1–14 课完整实践
 
 本项目是《大前端与AI实战》的课程项目：用户写下知识点，用自己的话录音复述，AI 转写、点评打分，再出题测评。目录名虽然是 `Android`，实际是 Node.js 后端 + React 前端 + Python 语音识别服务。
 
@@ -12,8 +12,9 @@
 | 知识库问答 | `src/services/ragService.js`、前端「AI 助手」           | 检索相关笔记 → 大模型照着回答，带引用来源，流式输出      | 第 11 课     |
 | 知识图谱   | `src/services/graphService.js`、前端「知识图谱」        | ECharts 力导向图；引用边 + 向量相似边（互为前 2 近邻）   | 第 12 课     |
 | 3D 视界    | `feynman-platform-frontend/src/three/`、前端「3D 视界」 | Three.js：场景、相机、渲染器、轨道控制器；悬停高亮       | 第 13 课     |
+| 知识宇宙   | 前端「知识宇宙」                                        | Three.js + d3-force-3d 三维力导向布局；点击选中高亮      | 第 14 课     |
 
-## 第 4–13 课：完整运行（前端 + 后端 + AI）
+## 第 4–14 课：完整运行（前端 + 后端 + AI）
 
 需要 Node.js 20+、Python 3.12、[Ollama](https://ollama.com)。模型都放在 F 盘：Whisper 模型在 `F:\AI-models\whisper`，向量模型在 `F:\AI-models\embedding\bge-base-zh-v1.5`，Ollama 模型在 `F:\AI-models\ollama-models`（由用户环境变量 `OLLAMA_MODELS` 指定）。
 
@@ -157,6 +158,7 @@ git show lesson-10
 git show lesson-11
 git show lesson-12
 git show lesson-13
+git show lesson-14
 ```
 
 标签含义：
@@ -170,6 +172,7 @@ git show lesson-13
 - `lesson-11`：知识库问答：检索加生成、引用来源、流式输出、AI 助手页面和检索评测。
 - `lesson-12`：知识图谱：ECharts 力导向图，引用关系和向量相似度两种连线。
 - `lesson-13`：Three.js 入门：旋转立方体，知识点随机撒成 3D 星球，鼠标悬停高亮星球和相连的线。
+- `lesson-14`：3D 知识宇宙：d3-force-3d 力导向布局，点击选中知识点，高亮邻居、其余变暗。
 
 ## 项目结构
 
