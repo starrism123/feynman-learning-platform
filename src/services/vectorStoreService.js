@@ -1,5 +1,7 @@
+const crypto = require("crypto");
 const { RecursiveCharacterTextSplitter } = require("@langchain/textsplitters");
 const KnowledgeChunk = require("../models/KnowledgeChunk");
+const KnowledgePoint = require("../models/KnowledgePoint");
 const embeddingService = require("./embeddingService");
 
 // 第 10 课：RAG 的「建库」部分。知识点 → 切块 → 向量化 → 存进 MongoDB。
@@ -71,14 +73,45 @@ const splitter = createSplitter();
 // 每块向量化时带上标题：片段里没出现主题词，也能和问题对上
 const withTitle = (knowledgePoint, text) => `${knowledgePoint.title}\n${text}`;
 
-async function indexKnowledgePoint(knowledgePoint) {
+// 标题和内容的指纹，存在每个块上。知识点改了但向量化失败时，
+// 旧块还在、块数也不为 0，只有对比指纹才知道它们已经过期
+function contentHash(knowledgePoint) {
+  return crypto
+    .createHash("sha1")
+    .update(`${knowledgePoint.title}\n${knowledgePoint.content}`)
+    .digest("hex");
+}
+
+// 同一个知识点的建索引、删除排成一队，一个做完再做下一个。
+// 否则连续保存两次时，两个后台任务交错执行，可能留下两组块，或者旧内容覆盖新内容
+const queues = new Map();
+function enqueue(knowledgePointId, job) {
+  const key = String(knowledgePointId);
+  const run = (queues.get(key) || Promise.resolve()).catch(() => {}).then(job);
+  queues.set(key, run);
+  run
+    .finally(() => {
+      if (queues.get(key) === run) queues.delete(key);
+    })
+    .catch(() => {});
+  return run;
+}
+
+async function buildIndex(knowledgePointId) {
+  // 排到自己时再读一次数据库，用的是最新内容；知识点已经被删了就只清理块
+  const knowledgePoint = await KnowledgePoint.findById(knowledgePointId);
+  if (!knowledgePoint) {
+    await KnowledgeChunk.deleteMany({ knowledgePoint: knowledgePointId });
+    return { chunks: 0, model: null };
+  }
   const texts = await splitter.splitText(knowledgePoint.content);
   // 先算向量再替换：向量化失败时，旧的块还在，检索不会突然变空
   const { embeddings, model } = await embeddingService.embed(
     texts.map((text) => withTitle(knowledgePoint, text)),
   );
-  await KnowledgeChunk.deleteMany({ knowledgePoint: knowledgePoint._id });
-  await KnowledgeChunk.insertMany(
+  const hash = contentHash(knowledgePoint);
+  // 先插入新块、再删旧块：插入失败时旧块完好；删除失败时多出的旧块下次重建会清掉
+  const inserted = await KnowledgeChunk.insertMany(
     texts.map((text, index) => ({
       user: knowledgePoint.user,
       knowledgePoint: knowledgePoint._id,
@@ -86,9 +119,18 @@ async function indexKnowledgePoint(knowledgePoint) {
       text,
       embedding: embeddings[index],
       model,
+      contentHash: hash,
     })),
   );
+  await KnowledgeChunk.deleteMany({
+    knowledgePoint: knowledgePoint._id,
+    _id: { $nin: inserted.map((chunk) => chunk._id) },
+  });
   return { chunks: texts.length, model };
+}
+
+function indexKnowledgePoint(knowledgePoint) {
+  return enqueue(knowledgePoint._id, () => buildIndex(knowledgePoint._id));
 }
 
 // 创建、更新知识点时调用：不等向量化完成就先返回响应，失败只记日志，可以再用 reindex 补
@@ -101,8 +143,11 @@ function indexInBackground(knowledgePoint) {
   });
 }
 
-async function removeKnowledgePoint(knowledgePointId) {
-  await KnowledgeChunk.deleteMany({ knowledgePoint: knowledgePointId });
+// 也要排队：正在建索引的任务做完以后再删，不会删完又被它插回来
+function removeKnowledgePoint(knowledgePointId) {
+  return enqueue(knowledgePointId, () =>
+    KnowledgeChunk.deleteMany({ knowledgePoint: knowledgePointId }),
+  );
 }
 
 // 两个向量都已归一化，点积就是余弦相似度，越接近 1 越相关
@@ -115,12 +160,18 @@ function dot(a, b) {
 async function search(userId, query, { limit = 4 } = {}) {
   const {
     embeddings: [queryVector],
+    model,
   } = await embeddingService.embed([query], { type: "query" });
-  const chunks = await KnowledgeChunk.find({ user: userId })
+  // 只和同一个模型算出的块比较：不同模型的向量各有各的坐标系，点积没有意义，
+  // 维度不同时甚至不会报错，只会给出乱序的结果。换了模型要先重建索引
+  const chunks = await KnowledgeChunk.find({ user: userId, model })
     .populate("knowledgePoint", "title")
     .lean();
   return chunks
-    .filter((chunk) => chunk.knowledgePoint)
+    .filter(
+      (chunk) =>
+        chunk.knowledgePoint && chunk.embedding.length === queryVector.length,
+    )
     .map((chunk) => ({
       knowledgePointId: chunk.knowledgePoint._id,
       title: chunk.knowledgePoint.title,
@@ -135,6 +186,7 @@ async function search(userId, query, { limit = 4 } = {}) {
 module.exports = {
   CHUNK_SIZE,
   CHUNK_OVERLAP,
+  contentHash,
   createSplitter,
   indexKnowledgePoint,
   indexInBackground,

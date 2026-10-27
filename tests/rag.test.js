@@ -1,3 +1,5 @@
+const { setTimeout: delay } = require("timers/promises");
+const mongoose = require("mongoose");
 const request = require("supertest");
 const { createApp } = require("../src/app");
 const embeddingService = require("../src/services/embeddingService");
@@ -137,8 +139,50 @@ describe("第 10 课 向量库", () => {
       text: "旧块",
       embedding: [1, 0, 0],
       model: "fake-embedding",
+      contentHash: "x",
     });
     await request(app).delete(`/api/knowledge-points/${kp._id}`).set(headers);
+    expect(await KnowledgeChunk.countDocuments()).toBe(0);
+  });
+
+  // 第一次向量化故意慢一点，模拟两个后台任务同时在跑
+  function slowFirstEmbed() {
+    let calls = 0;
+    return jest
+      .spyOn(embeddingService, "embed")
+      .mockImplementation(async (texts) => {
+        calls += 1;
+        if (calls === 1) await delay(50);
+        return fakeEmbed(texts);
+      });
+  }
+
+  test("连续两次建索引排队执行，最后只留下最新内容的一组块", async () => {
+    const headers = await registerUser();
+    const kp = await createKnowledgePoint(headers, "JWT", "第一版内容。");
+    slowFirstEmbed();
+
+    const first = vectorStoreService.indexKnowledgePoint(kp);
+    await KnowledgePoint.updateOne(
+      { _id: kp._id },
+      { content: "第二版内容。" },
+    );
+    const second = vectorStoreService.indexKnowledgePoint(kp);
+    await Promise.all([first, second]);
+
+    const chunks = await KnowledgeChunk.find({ knowledgePoint: kp._id });
+    expect(chunks.map((chunk) => chunk.text)).toEqual(["第二版内容。"]);
+  });
+
+  test("建索引途中删除知识点，不会留下孤儿块", async () => {
+    const headers = await registerUser();
+    const kp = await createKnowledgePoint(headers, "JWT", "签名令牌。");
+    slowFirstEmbed();
+
+    const indexing = vectorStoreService.indexKnowledgePoint(kp);
+    await request(app).delete(`/api/knowledge-points/${kp._id}`).set(headers);
+    await indexing;
+
     expect(await KnowledgeChunk.countDocuments()).toBe(0);
   });
 });
@@ -146,15 +190,28 @@ describe("第 10 课 向量库", () => {
 describe("第 10 课 知识库接口", () => {
   test("重建索引后能看到每个知识点的块数，检索只返回自己的、按相似度排序", async () => {
     jest.spyOn(embeddingService, "embed").mockImplementation(fakeEmbed);
+    jest
+      .spyOn(embeddingService, "health")
+      .mockResolvedValue({ online: true, model: "fake-embedding" });
     const headers = await registerUser();
     const other = await registerUser();
-    await createKnowledgePoint(headers, "JWT 认证", "令牌带签名。");
+    const jwt = await createKnowledgePoint(headers, "JWT 认证", "令牌带签名。");
     await createKnowledgePoint(headers, "React 状态", "组件重新渲染。");
     await createKnowledgePoint(other, "JWT 别人的", "别人的笔记。");
 
     const empty = await request(app).get("/api/rag/status").set(headers);
     expect(empty.body.data.missing).toBe(2);
 
+    // 知识点已经不存在的孤儿块，重建时一起清掉
+    await KnowledgeChunk.create({
+      user: jwt.user,
+      knowledgePoint: new mongoose.Types.ObjectId(),
+      index: 0,
+      text: "孤儿块",
+      embedding: [1, 0, 0],
+      model: "fake-embedding",
+      contentHash: "x",
+    });
     const rebuilt = await request(app).post("/api/rag/reindex").set(headers);
     expect(rebuilt.status).toBe(200);
     expect(rebuilt.body.data).toEqual({ knowledgePoints: 2, chunks: 2 });
@@ -163,6 +220,12 @@ describe("第 10 课 知识库接口", () => {
     const status = await request(app).get("/api/rag/status").set(headers);
     expect(status.body.data.totalChunks).toBe(2);
     expect(status.body.data.missing).toBe(0);
+    expect(status.body.data.outdated).toBe(0);
+    expect(status.body.data.service).toEqual({
+      online: true,
+      model: "fake-embedding",
+    });
+    expect(await KnowledgeChunk.countDocuments({ text: "孤儿块" })).toBe(0);
 
     const search = await request(app)
       .post("/api/rag/search")
@@ -171,6 +234,42 @@ describe("第 10 课 知识库接口", () => {
     expect(search.status).toBe(200);
     const titles = search.body.data.results.map((r) => r.title);
     expect(titles).toEqual(["JWT 认证", "React 状态"]);
+  });
+
+  test("内容改了没重建、或换了向量模型，状态显示过期，检索不混用旧模型的块", async () => {
+    jest.spyOn(embeddingService, "embed").mockImplementation(fakeEmbed);
+    jest
+      .spyOn(embeddingService, "health")
+      .mockResolvedValue({ online: true, model: "fake-embedding" });
+    const headers = await registerUser();
+    const jwt = await createKnowledgePoint(headers, "JWT 认证", "令牌带签名。");
+    const react = await createKnowledgePoint(
+      headers,
+      "React 状态",
+      "组件重新渲染。",
+    );
+    await request(app).post("/api/rag/reindex").set(headers);
+
+    // 模拟向量化服务没开时改了内容：旧块还在，但已经过期
+    await KnowledgePoint.updateOne(
+      { _id: jwt._id },
+      { content: "改过的内容。" },
+    );
+    // 模拟换模型前建的旧块
+    await KnowledgeChunk.updateMany(
+      { knowledgePoint: react._id },
+      { model: "old-model" },
+    );
+
+    const status = await request(app).get("/api/rag/status").set(headers);
+    expect(status.body.data.missing).toBe(0);
+    expect(status.body.data.outdated).toBe(2);
+
+    const search = await request(app)
+      .post("/api/rag/search")
+      .set(headers)
+      .send({ query: "React 怎么渲染" });
+    expect(search.body.data.results.map((r) => r.title)).toEqual(["JWT 认证"]);
   });
 
   test("检索参数校验和登录要求", async () => {

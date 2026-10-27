@@ -5,6 +5,7 @@ const { AppError } = require("../utils/appError");
 // 模型 bge-base-zh-v1.5），和语音识别是同一个服务，不需要密钥、不按次数收费。
 // type 为 query 时服务会给问题加检索前缀，文档不加；返回的向量已归一化成长度 1。
 const BATCH_SIZE = 32;
+const baseUrl = () => process.env.WHISPER_URL || "http://127.0.0.1:5001";
 
 async function embed(texts, { type = "document" } = {}) {
   const embeddings = [];
@@ -12,7 +13,7 @@ async function embed(texts, { type = "document" } = {}) {
   for (let start = 0; start < texts.length; start += BATCH_SIZE) {
     try {
       const response = await axios.post(
-        `${process.env.WHISPER_URL || "http://127.0.0.1:5001"}/embed`,
+        `${baseUrl()}/embed`,
         { texts: texts.slice(start, start + BATCH_SIZE), type },
         { timeout: 120000 },
       );
@@ -36,4 +37,14 @@ async function embed(texts, { type = "document" } = {}) {
   return { embeddings, model };
 }
 
-module.exports = { embed };
+// 向量化服务在不在线、用的是哪个模型。知识库状态页用它判断旧块是不是别的模型算的
+async function health() {
+  try {
+    const { data } = await axios.get(`${baseUrl()}/health`, { timeout: 3000 });
+    return { online: true, model: data.embeddingModel || null };
+  } catch {
+    return { online: false, model: null };
+  }
+}
+
+module.exports = { embed, health };

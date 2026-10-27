@@ -305,16 +305,19 @@ paths:
     get:
       tags: [知识库]
       summary: 查看向量库状态（第 10 课）
-      description: 每个知识点切成了几个文本块、最近一次建索引的时间和向量模型。chunks 为 0 表示还没进向量库。
+      description: 每个知识点切成了几个文本块、最近一次建索引的时间、向量模型和 upToDate。chunks 为 0 表示还没进向量库；upToDate 为 false 表示块是旧内容或别的模型算的，需要重建。service 是向量化服务是否在线及其模型。
       security: [{ bearerAuth: [] }]
       responses:
-        "200": { description: 返回 knowledgePoints、totalChunks、missing }
+        "200":
+          {
+            description: 返回 knowledgePoints、totalChunks、missing、outdated、service,
+          }
         "401": { $ref: "#/components/responses/Unauthorized" }
   /api/rag/reindex:
     post:
       tags: [知识库]
       summary: 重建当前用户的向量索引（第 10 课）
-      description: 把当前用户的所有知识点重新切块、向量化。需要本机 AI 服务（whisper-service）已启动，否则返回 503。
+      description: 把当前用户的所有知识点重新切块、向量化，并清掉知识点已不存在的块。需要本机 AI 服务（whisper-service）已启动，否则返回 503。
       security: [{ bearerAuth: [] }]
       responses:
         "200": { description: 返回重建的知识点数和文本块数 }
@@ -324,7 +327,7 @@ paths:
     post:
       tags: [知识库]
       summary: 语义检索（第 10 课）
-      description: 只检索、不调用大模型，返回和问题最相似的文本块及相似度（0–1，越大越相关）。
+      description: 只检索、不调用大模型，返回和问题最相似的文本块及相似度（0–1，越大越相关）。只和当前向量模型算出的块比较。
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true

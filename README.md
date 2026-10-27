@@ -24,6 +24,7 @@ cd whisper-service; py -3.12 -m venv .venv; .\.venv\Scripts\pip install -r requi
 ollama pull qwen2.5:7b
 # 向量模型：从 https://modelscope.cn/models/BAAI/bge-base-zh-v1.5/files 下载 config.json、pytorch_model.bin、
 # special_tokens_map.json、tokenizer.json、tokenizer_config.json、vocab.txt 到 F:\AI-models\embedding\bge-base-zh-v1.5
+# 下好后启动 whisper-service，运行 npm run rag:check 体检：相关句子的相似度要明显高于无关句子
 ```
 
 每次启动，各开一个终端：

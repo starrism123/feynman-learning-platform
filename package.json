@@ -16,7 +16,8 @@
     "verify": "npm run format:check && npm run lint && npm test",
     "db:local": "node scripts/local-db.js",
     "seed:demo": "node scripts/seed-demo.js",
-    "rag:compare-splitters": "node scripts/compare-splitters.js"
+    "rag:compare-splitters": "node scripts/compare-splitters.js",
+    "rag:check": "node scripts/check-embedding.js"
   },
   "engines": {
     "node": ">=20"

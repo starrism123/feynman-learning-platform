@@ -737,7 +737,8 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test(\"每个知识点都有文本块\", () => pm.expect(pm.response.json().data.missing).to.eql(0));"
+                  "pm.test(\"每个知识点都有文本块\", () => pm.expect(pm.response.json().data.missing).to.eql(0));",
+                  "pm.test(\"没有过期的块\", () => pm.expect(pm.response.json().data.outdated).to.eql(0));"
                 ]
               }
             }

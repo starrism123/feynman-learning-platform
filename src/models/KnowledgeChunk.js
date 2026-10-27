@@ -20,6 +20,8 @@ const knowledgeChunkSchema = new mongoose.Schema(
     text: { type: String, required: true },
     embedding: { type: [Number], required: true },
     model: { type: String, required: true },
+    // 建索引时知识点标题和内容的指纹，用来判断块是否已经过期
+    contentHash: { type: String, required: true },
   },
   { timestamps: true },
 );
