@@ -1,0 +1,21 @@
+sequenceDiagram
+  autonumber
+  actor U as 用户
+  participant FE as React 前端
+  participant BE as Express 后端
+  participant W as Whisper
+  participant L as 大模型
+  participant DB as MongoDB
+
+  U->>FE: 开始录音，讲完点停止
+  FE->>BE: 上传录音文件
+  BE->>W: 转发录音
+  W-->>BE: 识别出的文字
+  BE-->>FE: 显示文字（可以手动修改）
+  U->>FE: 请 AI 教练点评
+  FE->>BE: 复述文字 + 知识点编号
+  BE->>DB: 读取知识点原文
+  BE->>L: 提示词：原文 + 复述
+  L-->>BE: JSON：润色、四维得分、优缺点
+  BE->>DB: 保存复述记录，更新学习状态和复习列表
+  BE-->>FE: 显示点评结果

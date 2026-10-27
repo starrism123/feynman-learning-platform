@@ -1,0 +1,27 @@
+flowchart LR
+  FE["<b>React 前端</b><br/>React 19 + Vite<br/>页面 · 路由 · 录音"]
+
+  subgraph BE["Express 后端（Node.js）"]
+    direction TB
+    AUTH["JWT 认证中间件"]
+    KP["知识点增删改查"]
+    AUDIO["录音上传（multer）"]
+    AI["AI 点评 · 出题 · 判分"]
+    LLM["大模型服务<br/>按顺序尝试、失败自动切换"]
+    AUTH --> KP
+    AUTH --> AUDIO
+    AUTH --> AI
+    AI --> LLM
+  end
+
+  DB[("MongoDB<br/>用户 · 知识点 · 复述记录")]
+  WS["<b>Whisper 语音识别</b><br/>Python Flask · 本机运行"]
+  DS["<b>DeepSeek</b><br/>云端 · 首选"]
+  OL["<b>Ollama</b><br/>qwen2.5:7b · 本机备用"]
+
+  FE -- "HTTP 请求<br/>携带 Bearer Token" --> AUTH
+  KP --> DB
+  AI --> DB
+  AUDIO -- "转发录音" --> WS
+  LLM -- "① 首选" --> DS
+  LLM -. "② 失败时" .-> OL
