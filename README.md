@@ -1,20 +1,21 @@
-# 费曼学习平台：第 1–14 课完整实践
+# 费曼学习平台：第 1–15 课完整实践
 
 本项目是《大前端与AI实战》的课程项目：用户写下知识点，用自己的话录音复述，AI 转写、点评打分，再出题测评。目录名虽然是 `Android`，实际是 Node.js 后端 + React 前端 + Python 语音识别服务。
 
-| 部分       | 目录                                                    | 技术                                                     | 对应课次     |
-| ---------- | ------------------------------------------------------- | -------------------------------------------------------- | ------------ |
-| 后端       | `src/`                                                  | Express 5、MongoDB/Mongoose、JWT                         | 第 1–3 课    |
-| 前端       | `feynman-platform-frontend/`                            | React 19、Vite、React Router、Markdown/KaTeX/Mermaid     | 第 4–6 课    |
-| 语音识别   | `whisper-service/`                                      | Flask + 本地 Whisper（small）                            | 第 7、7.5 课 |
-| AI 能力    | `src/services/`                                         | DeepSeek 优先，本地 Ollama（qwen2.5:7b）兜底             | 第 8–9 课    |
-| 知识库     | `src/services/vectorStoreService.js`                    | 文本切分 + 本地 bge-base-zh-v1.5 向量化 + MongoDB 存向量 | 第 10 课     |
-| 知识库问答 | `src/services/ragService.js`、前端「AI 助手」           | 检索相关笔记 → 大模型照着回答，带引用来源，流式输出      | 第 11 课     |
-| 知识图谱   | `src/services/graphService.js`、前端「知识图谱」        | ECharts 力导向图；引用边 + 向量相似边（互为前 2 近邻）   | 第 12 课     |
-| 3D 视界    | `feynman-platform-frontend/src/three/`、前端「3D 视界」 | Three.js：场景、相机、渲染器、轨道控制器；悬停高亮       | 第 13 课     |
-| 知识宇宙   | 前端「知识宇宙」                                        | Three.js + d3-force-3d 三维力导向布局；点击选中高亮      | 第 14 课     |
+| 部分         | 目录                                                    | 技术                                                             | 对应课次     |
+| ------------ | ------------------------------------------------------- | ---------------------------------------------------------------- | ------------ |
+| 后端         | `src/`                                                  | Express 5、MongoDB/Mongoose、JWT                                 | 第 1–3 课    |
+| 前端         | `feynman-platform-frontend/`                            | React 19、Vite、React Router、Markdown/KaTeX/Mermaid             | 第 4–6 课    |
+| 语音识别     | `whisper-service/`                                      | Flask + 本地 Whisper（small）                                    | 第 7、7.5 课 |
+| AI 能力      | `src/services/`                                         | DeepSeek 优先，本地 Ollama（qwen2.5:7b）兜底                     | 第 8–9 课    |
+| 知识库       | `src/services/vectorStoreService.js`                    | 文本切分 + 本地 bge-base-zh-v1.5 向量化 + MongoDB 存向量         | 第 10 课     |
+| 知识库问答   | `src/services/ragService.js`、前端「AI 助手」           | 检索相关笔记 → 大模型照着回答，带引用来源，流式输出              | 第 11 课     |
+| 知识图谱     | `src/services/graphService.js`、前端「知识图谱」        | ECharts 力导向图；引用边 + 向量相似边（互为前 2 近邻）           | 第 12 课     |
+| 3D 视界      | `feynman-platform-frontend/src/three/`、前端「3D 视界」 | Three.js：场景、相机、渲染器、轨道控制器；悬停高亮               | 第 13 课     |
+| 知识宇宙     | 前端「知识宇宙」                                        | Three.js + d3-force-3d 三维力导向布局；点击选中高亮              | 第 14 课     |
+| 桌面端和 PWA | `feynman-platform-frontend/electron/`、`vite.config.js` | Electron 打包 Windows 安装程序；网页版可在 Chrome 安装、离线打开 | 第 15 课     |
 
-## 第 4–14 课：完整运行（前端 + 后端 + AI）
+## 第 4–15 课：完整运行（前端 + 后端 + AI）
 
 需要 Node.js 20+、Python 3.12、[Ollama](https://ollama.com)。模型都放在 F 盘：Whisper 模型在 `F:\AI-models\whisper`，向量模型在 `F:\AI-models\embedding\bge-base-zh-v1.5`，Ollama 模型在 `F:\AI-models\ollama-models`（由用户环境变量 `OLLAMA_MODELS` 指定）。
 
@@ -48,6 +49,17 @@ ollama serve                                          # 本地大模型 http://1
 为什么换了讲义里的服务：讲义用百度语音识别，这里换成本地 Whisper，不用申请密钥、不按次计费；大模型按讲义用 DeepSeek，另加本地 Ollama 兜底，没网或没余额时演示也能跑。
 
 第 10 课的知识库：讲义用百度千帆向量化、HNSWLib 存本地文件。这里向量化换成本机的 bge-base-zh-v1.5（和 Whisper 在同一个 Python 服务里），向量存进 MongoDB 的 `knowledgechunks` 集合：知识点更新时整组替换、删除时一起删，不会像 HNSWLib 那样留下旧向量。切分方式的对比见 [docs/rag-splitter-comparison.md](docs/rag-splitter-comparison.md)。
+
+第 15 课的桌面端和 PWA（命令都在 `feynman-platform-frontend` 里运行，后端要开着）：
+
+```powershell
+npm run electron:dev        # 开发：Vite 开发服务器 + Electron 窗口，改代码自动刷新
+npm run electron:start      # 用打包后的页面开 Electron 窗口（file:// 协议，和安装版一样）
+npm run electron:build      # 打 Windows 安装程序，输出到 release/（约 120MB，未签名）
+npm run build; npm run preview   # PWA：打开 http://localhost:4173，地址栏右侧点「安装」；断网后刷新仍能打开
+```
+
+第一次打包会下载 Electron（约 150MB）和打包工具。想放在 F 盘，先在同一个终端设 `$env:electron_config_cache="F:\AI-models\electron-cache"; $env:ELECTRON_BUILDER_CACHE="F:\AI-models\electron-builder-cache"` 再 `npm install`、打包。
 
 第 11 课的知识库问答：讲义用 LangChain 的 LCEL 把检索、提示词、大模型串成一条链，这里每一步是一个普通函数，按顺序调用（`src/services/ragService.js`）。在讲义基础上做了两道选做题：回答附带编号的引用来源、流式输出（SSE）。检索效果用 `npm run rag:eval` 评测，相关度门槛和块长都按评测数据定，见 [docs/rag-retrieval-eval.md](docs/rag-retrieval-eval.md)。
 
@@ -159,6 +171,7 @@ git show lesson-11
 git show lesson-12
 git show lesson-13
 git show lesson-14
+git show lesson-15
 ```
 
 标签含义：
@@ -173,6 +186,7 @@ git show lesson-14
 - `lesson-12`：知识图谱：ECharts 力导向图，引用关系和向量相似度两种连线。
 - `lesson-13`：Three.js 入门：旋转立方体，知识点随机撒成 3D 星球，鼠标悬停高亮星球和相连的线。
 - `lesson-14`：3D 知识宇宙：d3-force-3d 力导向布局，点击选中知识点，高亮邻居、其余变暗。
+- `lesson-15`：桌面端和 PWA：Electron 打包 Windows 安装程序，网页版可安装、可离线打开。
 
 ## 项目结构
 

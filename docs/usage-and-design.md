@@ -84,6 +84,28 @@ ECharts 的提示框按 HTML 渲染，知识点标题会先用 `format.encodeHTM
 - 点击选中（挑战）：用 Raycaster 拾取，选中的星球变橙色，邻居变浅蓝，相连的线高亮，其余星球和线变暗；页面下方显示知识点名、相连数量和打开链接。点空白处取消。按下到抬起移动超过 5 像素算拖动视角，不触发选中。
 - 讲义的模板用 CesiumJS 做地球场景；这里按讲义正文用 Three.js + d3-force-3d，没有引入 Cesium。选中信息只用一行文字展示，没有做浮层（约定跳过的挑战）。
 
+## 桌面端和 PWA（第 15 课）
+
+同一份前端代码出两种产物，由 Vite 的 `mode` 区分（`feynman-platform-frontend/vite.config.js`）：
+
+|                | 网页版（PWA）                       | 桌面版（Electron）                                            |
+| -------------- | ----------------------------------- | ------------------------------------------------------------- |
+| 构建           | `npm run build` → `dist/`           | `npm run build:desktop`（`--mode electron`）→ `dist-desktop/` |
+| 打开方式       | 浏览器 `http://…`，可「安装」到桌面 | Electron 窗口加载本地文件（`file://`）                        |
+| 资源路径       | `/assets/...`                       | `./assets/...`（`base: './'`）                                |
+| 路由           | BrowserRouter（`/graph`）           | HashRouter（`index.html#/graph`）                             |
+| Service Worker | 有，缓存页面外壳                    | 没有                                                          |
+
+为什么桌面版要改两处：`file://` 下 `/assets/...` 指向磁盘根目录，资源全部 404 白屏，所以用相对路径；`file://` 也没有服务器把 `/graph` 退回 `index.html`，刷新子路由会白屏，所以把路由放到 `#` 后面。Service Worker 只能在 HTTPS 或 localhost 下注册，`file://` 不行，所以只在网页版启用。
+
+- Electron 主进程 `electron/main.cjs`：开 1200×800 窗口，关闭 Node 集成、开启上下文隔离；笔记里的外链交给系统浏览器打开。前端 `package.json` 是 ES 模块（`"type": "module"`），主进程用 `.cjs` 才能写 `require`。
+- 接口地址仍是 `http://localhost:3000/api`，桌面版运行时后端要开着。从 `file://` 发出的请求来源是 `null`，后端 `cors()` 允许所有来源，所以能通。
+- 打包：electron-builder 默认要解压签名工具，里面有符号链接，Windows 没开开发者模式会报「A required privilege is not held」。设 `win.signAndEditExecutable: false` 跳过签名和改 exe 资源，代价是安装程序没签名（首次运行 Windows 可能提示「未知发布者」），exe 也用 Electron 默认图标。`files` 只收 `dist-desktop` 和 `electron`，安装包里不带 `node_modules`（页面依赖已经被 Vite 打进 JS 了），`app.asar` 约 10MB。
+- PWA：vite-plugin-pwa 生成 `manifest.webmanifest` 和 `sw.js`。Service Worker 预缓存脚本、样式、图标和 woff2 字体（约 130 个文件、8.6MB；主包和 Mermaid 布局包超过默认 2MB 上限，放宽到 3MB）。断网时能打开页面外壳和登录页，但知识点数据要请求后端，断网时拿不到。图标 `public/pwa-*.png` 是 `scripts/make-icons.cjs` 用纯 Node 生成的蓝底白色「F」。
+- 测 PWA 用 `npm run preview`（端口 4173），不要按讲义用 `serve` 的 3000 端口，那是后端的端口。讲义说手机访问 `http://电脑IP` 安装，这不成立：局域网 IP 不是 HTTPS，Service Worker 注册不了；手机要测得先有 HTTPS。
+- 已验证：Chrome 开发者协议的可安装性检查零错误；Chromium 断网后 `/login`、`/universe` 都能从缓存打开；Electron 开发版、打包后的 exe 都能打开页面，登录演示账号后知识宇宙正常显示。
+- 讲义挑战「Electron 菜单」按约定没做，用 Electron 默认菜单。
+
 ## 配置与安全边界
 
 - `MONGO_URI`、`JWT_SECRET`、`JWT_EXPIRES_IN`、`PORT` 是运行配置；JWT 密钥至少 32 个字符。
@@ -105,7 +127,7 @@ ECharts 的提示框按 HTML 渲染，知识点标题会先用 `format.encodeHTM
 - AJAX 演示的固定 JWT 密钥仅用于独立的临时学习进程，不得用于普通启动或公开部署。
 - Docker 完整验收需要 Docker Desktop 引擎已启动。
 - Atlas 账号、IP 白名单及个人密钥无法由仓库预置。
-- 第 11 课的问答是单轮的，不记上下文：追问「那它呢」时检索不到上一轮说的东西。桌面端和 PWA 尚未实现。
+- 第 11 课的问答是单轮的，不记上下文：追问「那它呢」时检索不到上一轮说的东西。桌面版安装程序未签名；PWA 离线时只有页面外壳，数据仍要连后端。
 - 知识图谱每次请求都重新计算两两相似度，知识点到几百个时（几万对）会明显变慢，届时要缓存或只算近邻。演示数据只有一条引用边（「跨域与 CORS」正文提到「JWT 登录认证」）。
 - 「标题点名保底」只对标题里有英文术语的知识点生效；纯中文的概念名一句话问多个时，仍可能漏掉一部分。
 - 向量化依赖本机 AI 服务；测试里用 `RAG_INDEXING=off` 关闭后台向量化，把 `WHISPER_URL` 指向空端口，并 mock `embeddingService.embed` 和 `embeddingService.health`。
