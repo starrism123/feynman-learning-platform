@@ -55,7 +55,8 @@ ollama serve                                          # 本地大模型 http://1
 ```powershell
 npm run electron:dev        # 开发：Vite 开发服务器 + Electron 窗口，改代码自动刷新
 npm run electron:start      # 用打包后的页面开 Electron 窗口（file:// 协议，和安装版一样）
-npm run electron:build      # 打 Windows 安装程序，输出到 release/（约 120MB，未签名）
+npm run electron:build      # 打 Windows 安装程序，输出到 release/（约 120MB，未签名，exe 用蓝底「F」图标；要开 Windows 开发者模式）
+npm run electron:build:no-icon   # 没开开发者模式时用：跳过改 exe 图标，其余一样
 npm run build; npm run preview   # PWA：打开 http://localhost:4173，地址栏右侧点「安装」；断网后刷新仍能打开
 ```
 

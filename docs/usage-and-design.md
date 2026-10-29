@@ -100,7 +100,7 @@ ECharts 的提示框按 HTML 渲染，知识点标题会先用 `format.encodeHTM
 
 - Electron 主进程 `electron/main.cjs`：开 1200×800 窗口，关闭 Node 集成、开启上下文隔离；笔记里的外链交给系统浏览器打开。前端 `package.json` 是 ES 模块（`"type": "module"`），主进程用 `.cjs` 才能写 `require`。
 - 接口地址仍是 `http://localhost:3000/api`，桌面版运行时后端要开着。从 `file://` 发出的请求来源是 `null`，后端 `cors()` 允许所有来源，所以能通。
-- 打包：electron-builder 默认要解压签名工具，里面有符号链接，Windows 没开开发者模式会报「A required privilege is not held」。设 `win.signAndEditExecutable: false` 跳过签名和改 exe 资源，代价是安装程序没签名（首次运行 Windows 可能提示「未知发布者」），exe 也用 Electron 默认图标。`files` 只收 `dist-desktop` 和 `electron`，安装包里不带 `node_modules`（页面依赖已经被 Vite 打进 JS 了），`app.asar` 约 10MB。
+- 打包：electron-builder 默认要解压签名工具，里面有符号链接，Windows 没开开发者模式会报「A required privilege is not held」。`npm run electron:build` 会改 exe 资源，把图标换成 `public/pwa-512x512.png`（要开开发者模式）；没开时用 `npm run electron:build:no-icon`，它带 `-c.win.signAndEditExecutable=false` 跳过这一步，exe 用 Electron 默认图标。两种都没有代码签名证书，首次运行 Windows 可能提示「未知发布者」。`files` 只收 `dist-desktop` 和 `electron`，安装包里不带 `node_modules`（页面依赖已经被 Vite 打进 JS 了），`app.asar` 约 10MB。
 - PWA：vite-plugin-pwa 生成 `manifest.webmanifest` 和 `sw.js`。Service Worker 预缓存脚本、样式、图标和 woff2 字体（约 130 个文件、8.6MB；主包和 Mermaid 布局包超过默认 2MB 上限，放宽到 3MB）。断网时能打开页面外壳和登录页，但知识点数据要请求后端，断网时拿不到。图标 `public/pwa-*.png` 是 `scripts/make-icons.cjs` 用纯 Node 生成的蓝底白色「F」。
 - 测 PWA 用 `npm run preview`（端口 4173），不要按讲义用 `serve` 的 3000 端口，那是后端的端口。讲义说手机访问 `http://电脑IP` 安装，这不成立：局域网 IP 不是 HTTPS，Service Worker 注册不了；手机要测得先有 HTTPS。
 - 已验证：Chrome 开发者协议的可安装性检查零错误；Chromium 断网后 `/login`、`/universe` 都能从缓存打开；Electron 开发版、打包后的 exe 都能打开页面，登录演示账号后知识宇宙正常显示。

@@ -12,6 +12,7 @@
     "electron:dev": "concurrently -k \"vite --port 5173 --strictPort\" \"wait-on http://localhost:5173 && cross-env ELECTRON_START_URL=http://localhost:5173 electron .\"",
     "electron:start": "npm run build:desktop && electron .",
     "electron:build": "npm run build:desktop && electron-builder --win nsis",
+    "electron:build:no-icon": "npm run build:desktop && electron-builder --win nsis -c.win.signAndEditExecutable=false",
     "electron:build:dir": "npm run build:desktop && electron-builder --win --dir"
   },
   "dependencies": {
@@ -60,8 +61,7 @@
       "output": "release"
     },
     "win": {
-      "icon": "public/pwa-512x512.png",
-      "signAndEditExecutable": false
+      "icon": "public/pwa-512x512.png"
     },
     "nsis": {
       "oneClick": false,
