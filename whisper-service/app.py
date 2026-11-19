@@ -13,10 +13,10 @@ from flask import Flask, jsonify, request
 from transformers import AutoModel, AutoTokenizer
 
 MODEL_NAME = os.getenv("WHISPER_MODEL", "small")
-MODEL_DIR = os.getenv("WHISPER_MODEL_DIR", r"F:\AI-models\whisper")
+MODEL_DIR = os.getenv("WHISPER_MODEL_DIR", r"F:\1_Apps\AI\Models\whisper")
 PORT = int(os.getenv("WHISPER_PORT", "5001"))
 EMBEDDING_MODEL_DIR = os.getenv(
-    "EMBEDDING_MODEL_DIR", r"F:\AI-models\embedding\bge-base-zh-v1.5"
+    "EMBEDDING_MODEL_DIR", r"F:\1_Apps\AI\Models\embedding\bge-base-zh-v1.5"
 )
 EMBEDDING_MODEL = os.path.basename(os.path.normpath(EMBEDDING_MODEL_DIR))
 # bge 中文模型的约定：检索时给「问题」加这句前缀，「文档」不加，召回更准

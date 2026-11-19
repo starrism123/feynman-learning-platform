@@ -9,7 +9,7 @@
 - 第 10 课完成知识库建库与检索（`vectorStoreService`、`/api/rag/*`）；第 11 课完成知识库问答（`ragService`、`/api/ai/rag-qa`、`/api/ai/rag-qa/stream`、前端 `/agent`）。第 12 课完成知识图谱（`graphService`、`/api/graph/knowledge-map`、前端 `/graph`，ECharts）。第 13 课完成 Three.js 入门（前端 `/3d-world`，共用场景代码在 `feynman-platform-frontend/src/three/knowledgeScene.js`）。第 14 课完成 3D 知识宇宙（前端 `/universe`，d3-force-3d 力导向布局，复用同一份场景代码）。第 15 课完成桌面端和 PWA：`vite build --mode electron` 出 `dist-desktop/`（相对路径 + HashRouter，不启用 PWA），Electron 主进程在 `feynman-platform-frontend/electron/main.cjs`，`electron:build` 改 exe 图标，要开 Windows 开发者模式，没开时用 `electron:build:no-icon`（`signAndEditExecutable=false`）；网页版 `npm run build` 带 vite-plugin-pwa。改路由或 vite 配置时两种模式都要构建一遍。第 16 课是总结和部署理论：`docs/project-summary.md`、`docs/deployment.md`、`docs/final-demo.md`；没有部署到云服务器，不要描述为已上线。期末实训报告（docx）不在本仓库，模板确定前不要动手。
 - 改检索参数（门槛、块长、取几块、点名保底）后跑 `npm run rag:eval`，并按新数据改 `scripts/eval-retrieval.js` 里的结论。
 - 向量化（2026-10-27）：原定用本地 Ollama，但 Ollama 导入的 bge-m3、Qwen3-Embedding 中文相似度失常（无关句子比相关句子分数还高），改为在 whisper-service 里用 transformers 加载 bge-base-zh-v1.5。向量存 MongoDB，不用 HNSWLib。换向量模型或升级 transformers/torch 后先跑 `npm run rag:check`；每个块存 `model` 和 `contentHash`，检索只比同模型的块，状态接口据此报告过期。同一知识点的建索引和删除通过 `vectorStoreService` 内的队列串行执行，不要绕过它直接写 `KnowledgeChunk`。
-- AI 选型（2026-10-26 楠定）：语音识别用本地 Whisper 替代百度；大模型 DeepSeek 为主、本地 Ollama（qwen2.5:7b）备用，统一走 OpenAI 兼容接口（`src/services/llmService.js`）。模型文件在 `F:\AI-models\`，不进仓库。
+- AI 选型（2026-10-26 楠定）：语音识别用本地 Whisper 替代百度；大模型 DeepSeek 为主、本地 Ollama（qwen2.5:7b）备用，统一走 OpenAI 兼容接口（`src/services/llmService.js`）。模型文件在 `F:\1_Apps\AI\Models\`，不进仓库。
 - 提交信息用中文，不加 AI 署名；每课完成后打 `lesson-N` 标签并推送到私有仓库 `starrism123/feynman-learning-platform`。
 
 ## 架构与契约

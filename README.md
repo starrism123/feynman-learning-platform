@@ -17,7 +17,7 @@
 
 ## 第 4–16 课：完整运行（前端 + 后端 + AI）
 
-需要 Node.js 20+、Python 3.12、[Ollama](https://ollama.com)。模型都放在 F 盘：Whisper 模型在 `F:\AI-models\whisper`，向量模型在 `F:\AI-models\embedding\bge-base-zh-v1.5`，Ollama 模型在 `F:\AI-models\ollama-models`（由用户环境变量 `OLLAMA_MODELS` 指定）。
+需要 Node.js 20+、Python 3.12、[Ollama](https://ollama.com)。模型都放在 F 盘：Whisper 模型在 `F:\1_Apps\AI\Models\whisper`，向量模型在 `F:\1_Apps\AI\Models\embedding\bge-base-zh-v1.5`，Ollama 模型在 `F:\1_Apps\AI\Models\ollama-models`（由用户环境变量 `OLLAMA_MODELS` 指定）。
 
 第一次准备：
 
@@ -28,7 +28,7 @@ cd feynman-platform-frontend; npm install; cd ..
 cd whisper-service; py -3.12 -m venv .venv; .\.venv\Scripts\pip install -r requirements.txt; cd ..
 ollama pull qwen2.5:7b
 # 向量模型：从 https://modelscope.cn/models/BAAI/bge-base-zh-v1.5/files 下载 config.json、pytorch_model.bin、
-# special_tokens_map.json、tokenizer.json、tokenizer_config.json、vocab.txt 到 F:\AI-models\embedding\bge-base-zh-v1.5
+# special_tokens_map.json、tokenizer.json、tokenizer_config.json、vocab.txt 到 F:\1_Apps\AI\Models\embedding\bge-base-zh-v1.5
 # 下好后启动 whisper-service，运行 npm run rag:check 体检：相关句子的相似度要明显高于无关句子
 ```
 
@@ -60,7 +60,7 @@ npm run electron:build:no-icon   # 没开开发者模式时用：跳过改 exe �
 npm run build; npm run preview   # PWA：打开 http://localhost:4173，地址栏右侧点「安装」；断网后刷新仍能打开
 ```
 
-第一次打包会下载 Electron（约 150MB）和打包工具。想放在 F 盘，先在同一个终端设 `$env:electron_config_cache="F:\AI-models\electron-cache"; $env:ELECTRON_BUILDER_CACHE="F:\AI-models\electron-builder-cache"` 再 `npm install`、打包。
+第一次打包会下载 Electron（约 150MB）和打包工具。想放在 F 盘，先在同一个终端设 `$env:electron_config_cache="F:\1_Apps\Dev\Cache\electron"; $env:ELECTRON_BUILDER_CACHE="F:\1_Apps\Dev\Cache\electron-builder"` 再 `npm install`、打包。
 
 第 11 课的知识库问答：讲义用 LangChain 的 LCEL 把检索、提示词、大模型串成一条链，这里每一步是一个普通函数，按顺序调用（`src/services/ragService.js`）。在讲义基础上做了两道选做题：回答附带编号的引用来源、流式输出（SSE）。检索效果用 `npm run rag:eval` 评测，相关度门槛和块长都按评测数据定，见 [docs/rag-retrieval-eval.md](docs/rag-retrieval-eval.md)。
 
