@@ -1,11 +1,42 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import ReactECharts from 'echarts-for-react';
-import { format } from 'echarts';
+import * as echarts from 'echarts';
 import apiClient, { getErrorMessage } from '../api/axios';
 
+// 自己管理 ECharts 实例，不用 echarts-for-react：它先建临时实例量容器宽度再重建，
+// 量的时候容器可能还是 0 宽，ECharts 6 的力导向图拿到 0 宽会报错、画布空白。
+// 这里等容器真正有宽高再 init，之后跟着容器尺寸 resize。
+function GraphChart({ option, onNodeClick }) {
+  const boxRef = useRef(null);
+
+  useEffect(() => {
+    const box = boxRef.current;
+    let chart = null;
+    const observer = new ResizeObserver(() => {
+      if (!box.clientWidth || !box.clientHeight) return;
+      if (chart) {
+        chart.resize();
+        return;
+      }
+      chart = echarts.init(box);
+      chart.setOption(option);
+      chart.on('click', (params) => {
+        if (params.dataType === 'node') onNodeClick(params.data.id);
+      });
+    });
+    observer.observe(box);
+    // 卸载时释放实例（React 开发模式会挂载两次，不释放就叠两个图）
+    return () => {
+      observer.disconnect();
+      chart?.dispose();
+    };
+  }, [option, onNodeClick]);
+
+  return <div ref={boxRef} style={{ height: '620px', width: '100%' }} />;
+}
+
 // ECharts 的提示框按 HTML 渲染，标题是用户自己写的，必须转义，否则又是一个 XSS 入口（见第 6 课）
-const escape = (text) => format.encodeHTML(String(text ?? ''));
+const escape = (text) => echarts.format.encodeHTML(String(text ?? ''));
 
 function buildOption({ nodes, links }) {
   const byId = new Map(nodes.map((node) => [node.id, node]));
@@ -74,14 +105,7 @@ function GraphPage() {
   const option = useMemo(() => (graph ? buildOption(graph) : null), [graph]);
 
   // 点击节点打开知识点详情
-  const onEvents = useMemo(
-    () => ({
-      click: (params) => {
-        if (params.dataType === 'node') navigate(`/kp/${params.data.id}`);
-      },
-    }),
-    [navigate],
-  );
+  const openPoint = useCallback((id) => navigate(`/kp/${id}`), [navigate]);
 
   if (error) return <p className="error">{error}</p>;
   if (!graph) return <p className="muted">正在生成知识图谱…</p>;
@@ -108,7 +132,7 @@ function GraphPage() {
             {graph.nodes.length} 个知识点 · {graph.links.length - similarCount} 条引用 · {similarCount} 条相似
             {graph.meta.unindexed > 0 && ` · ${graph.meta.unindexed} 个还没建向量索引（灰色），可在 AI 助手页重建`}
           </p>
-          <ReactECharts option={option} style={{ height: '620px', width: '100%' }} onEvents={onEvents} />
+          <GraphChart option={option} onNodeClick={openPoint} />
         </div>
       )}
     </div>
