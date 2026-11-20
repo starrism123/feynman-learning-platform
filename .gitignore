@@ -16,3 +16,9 @@ output/配音试听/
 video/node_modules/
 video/output/
 video/.venv/
+
+# 实训报告含学号姓名，只留本机
+报告/
+
+# Claude Code 本机启动配置
+.claude/

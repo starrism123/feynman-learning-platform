@@ -8,7 +8,16 @@
 
 ## 一、开讲前 20 分钟：启动和检查
 
-开四个终端，在项目根目录 `F:\Project\project\20_学校\2026\Android` 依次运行：
+在资源管理器里打开 `F:\Project\project\20_学校\2026\Android`，**双击 `start-demo.cmd`**。它会自动：
+
+1. 依次弹出 4 个窗口：「1 数据库」「2 AI 服务」「3 后端」「4 前端」，每个就绪后再开下一个（AI 服务加载模型要等约 30 秒）。
+2. 重置演示账号和 8 个知识点、建向量索引，应该显示「向量索引已建好：15 个文本块」。
+3. 体检向量服务，应该显示「全部通过」。
+4. 打开浏览器到 `http://localhost:5173`。
+
+**4 个服务窗口演示期间不要关**，关掉哪个，对应的功能就停了。如果脚本提示「端口已经被占用」，说明之前的服务还开着，关掉那些窗口或重启电脑再双击。
+
+脚本卡住或报错时，改成手动：开四个终端，分别运行下面四条，等每个窗口出现启动成功的提示，再运行 `npm run seed:demo` 和 `npm run rag:check`。
 
 ```powershell
 npm run db:local                                                   # 1. MongoDB（数据在 .data/mongo）
@@ -19,9 +28,7 @@ npm --prefix feynman-platform-frontend run dev                     # 4. 前端 :
 
 然后：
 
-- [ ] `npm run seed:demo`：重置演示账号和 8 个知识点，建好向量索引（应该显示「向量索引已建好：15 个文本块」）
-- [ ] `npm run rag:check`：应该显示「全部通过」
-- [ ] Chrome 打开 `http://localhost:5173`，登录演示账号（账号和密码见 `scripts/seed-demo.js` 开头）
+- [ ] 用 Chrome 打开 `http://localhost:5173`，登录演示账号（账号和密码见 `scripts/seed-demo.js` 开头）
 - [ ] 先自己录一段复述，确认麦克风已授权、能转出文字
 - [ ] 在 AI 助手页问一句，确认 DeepSeek 有回应
 - [ ] 浏览器缩放 125%，关掉无关标签页和微信通知

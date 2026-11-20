@@ -54,6 +54,7 @@ module.exports = [
       "feynman-platform-frontend/**",
       "whisper-service/**",
       "video/**",
+      "报告/**",
     ],
   },
 ];

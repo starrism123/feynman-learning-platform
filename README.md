@@ -32,7 +32,9 @@ ollama pull qwen2.5:7b
 # 下好后启动 whisper-service，运行 npm run rag:check 体检：相关句子的相似度要明显高于无关句子
 ```
 
-每次启动，各开一个终端：
+演示前最省事的做法：双击项目根目录的 `start-demo.cmd`。它会依次打开数据库、AI 服务、后端、前端 4 个窗口，每个就绪后再开下一个，然后运行 `seed:demo`（重置演示数据）和 `rag:check`，最后打开浏览器。4 个服务窗口用完逐个关掉。
+
+手动启动时，各开一个终端：
 
 ```powershell
 npm run db:local                                      # 本机 MongoDB，数据存在 .data/mongo，重启不丢
